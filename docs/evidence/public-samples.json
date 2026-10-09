@@ -1,0 +1,1920 @@
+{
+  "generatedBy": "tests/e2e/public-samples.spec.ts",
+  "environment": {
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.7390.37 Safari/537.36",
+    "mse": {
+      "h264": false,
+      "aac": false,
+      "hevc": false,
+      "vp9": true,
+      "av1": true,
+      "opus": true,
+      "flac": true,
+      "iamf": false
+    },
+    "progressive": {
+      "mkv": "",
+      "mp3": "probably",
+      "ogg": "probably",
+      "mp2t": "",
+      "aacAdts": ""
+    },
+    "widevine": false
+  },
+  "summary": {
+    "playable": {
+      "error": 24,
+      "played": 5
+    },
+    "codec-dependent": {
+      "error": 29,
+      "played": 5
+    },
+    "drm": {
+      "error": 23
+    },
+    "expected-error": {
+      "error": 11
+    }
+  },
+  "results": [
+    {
+      "id": "clear-dash/hd-mp4-h264",
+      "category": "Clear DASH",
+      "name": "HD (MP4, H264)",
+      "expected": "playable",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "media-unsupported-codec!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "clear-dash/uhd-mp4-h264",
+      "category": "Clear DASH",
+      "name": "UHD (MP4, H264)",
+      "expected": "playable",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "media-unsupported-codec!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "clear-dash/hd-mp4-h265",
+      "category": "Clear DASH",
+      "name": "HD (MP4, H265)",
+      "expected": "codec-dependent",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "media-unsupported-codec!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "clear-dash/uhd-mp4-h265",
+      "category": "Clear DASH",
+      "name": "UHD (MP4, H265)",
+      "expected": "codec-dependent",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "media-unsupported-codec!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "clear-dash/hd-webm-vp9",
+      "category": "Clear DASH",
+      "name": "HD (WebM, VP9)",
+      "expected": "playable",
+      "outcome": "played",
+      "playedSeconds": 2.2,
+      "engine": "shaka",
+      "errors": [],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 4,
+      "audioTracks": 1,
+      "subtitles": 0,
+      "video": {
+        "width": 1920,
+        "height": 857
+      },
+      "pageErrors": []
+    },
+    {
+      "id": "clear-dash/uhd-webm-vp9",
+      "category": "Clear DASH",
+      "name": "UHD (WebM, VP9)",
+      "expected": "playable",
+      "outcome": "played",
+      "playedSeconds": 2.1,
+      "engine": "shaka",
+      "errors": [],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 1,
+      "audioTracks": 1,
+      "subtitles": 0,
+      "video": {
+        "width": 3840,
+        "height": 1714
+      },
+      "pageErrors": []
+    },
+    {
+      "id": "widevine-dash-mp4-h264/hd-cenc",
+      "category": "Widevine DASH (MP4, H264)",
+      "name": "HD (cenc)",
+      "expected": "drm",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "drm-unsupported!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "widevine-dash-mp4-h264/uhd-cenc",
+      "category": "Widevine DASH (MP4, H264)",
+      "name": "UHD (cenc)",
+      "expected": "drm",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "drm-unsupported!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "widevine-dash-mp4-h264/hd-cbcs",
+      "category": "Widevine DASH (MP4, H264)",
+      "name": "HD (cbcs)",
+      "expected": "drm",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "drm-unsupported!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "widevine-dash-mp4-h264/uhd-cbcs",
+      "category": "Widevine DASH (MP4, H264)",
+      "name": "UHD (cbcs)",
+      "expected": "drm",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "drm-unsupported!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "widevine-dash-mp4-h264/secure-clear-secure-cenc",
+      "category": "Widevine DASH (MP4, H264)",
+      "name": "Secure -> Clear -> Secure (cenc)",
+      "expected": "drm",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "network-error",
+        "network-error!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "widevine-dash-webm-vp9/hd-cenc-full-sample",
+      "category": "Widevine DASH (WebM, VP9)",
+      "name": "HD (cenc, full-sample)",
+      "expected": "drm",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "drm-unsupported!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "widevine-dash-webm-vp9/uhd-cenc-full-sample",
+      "category": "Widevine DASH (WebM, VP9)",
+      "name": "UHD (cenc, full-sample)",
+      "expected": "drm",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "drm-unsupported!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "widevine-dash-webm-vp9/hd-cenc-sub-sample",
+      "category": "Widevine DASH (WebM, VP9)",
+      "name": "HD (cenc, sub-sample)",
+      "expected": "drm",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "drm-unsupported!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "widevine-dash-webm-vp9/uhd-cenc-sub-sample",
+      "category": "Widevine DASH (WebM, VP9)",
+      "name": "UHD (cenc, sub-sample)",
+      "expected": "drm",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "drm-unsupported!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "widevine-dash-mp4-h265/hd-cenc",
+      "category": "Widevine DASH (MP4, H265)",
+      "name": "HD (cenc)",
+      "expected": "drm",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "drm-unsupported!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "widevine-dash-mp4-h265/uhd-cenc",
+      "category": "Widevine DASH (MP4, H265)",
+      "name": "UHD (cenc)",
+      "expected": "drm",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "drm-unsupported!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "widevine-dash-policy-tests/sw-secure-crypto-l3",
+      "category": "Widevine DASH (policy tests)",
+      "name": "SW secure crypto (L3)",
+      "expected": "drm",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "drm-unsupported!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "widevine-dash-policy-tests/sw-secure-decode",
+      "category": "Widevine DASH (policy tests)",
+      "name": "SW secure decode",
+      "expected": "drm",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "drm-unsupported!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "widevine-dash-policy-tests/hw-secure-crypto",
+      "category": "Widevine DASH (policy tests)",
+      "name": "HW secure crypto",
+      "expected": "expected-error",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "drm-unsupported!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "widevine-dash-policy-tests/hw-secure-decode",
+      "category": "Widevine DASH (policy tests)",
+      "name": "HW secure decode",
+      "expected": "expected-error",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "drm-unsupported!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "widevine-dash-policy-tests/hw-secure-all-l1",
+      "category": "Widevine DASH (policy tests)",
+      "name": "HW secure all (L1)",
+      "expected": "expected-error",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "drm-unsupported!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "widevine-dash-policy-tests/20s-license-with-renewal",
+      "category": "Widevine DASH (policy tests)",
+      "name": "20s license with renewal",
+      "expected": "drm",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "drm-unsupported!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "widevine-dash-policy-tests/30s-license-fails-at-30s",
+      "category": "Widevine DASH (policy tests)",
+      "name": "30s license (fails at ~30s)",
+      "expected": "expected-error",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "drm-unsupported!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "widevine-dash-policy-tests/hdcp-not-required",
+      "category": "Widevine DASH (policy tests)",
+      "name": "HDCP not required",
+      "expected": "drm",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "drm-unsupported!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "widevine-dash-policy-tests/hdcp-1-0-required",
+      "category": "Widevine DASH (policy tests)",
+      "name": "HDCP 1.0 required",
+      "expected": "drm",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "drm-unsupported!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "widevine-dash-policy-tests/hdcp-2-0-required",
+      "category": "Widevine DASH (policy tests)",
+      "name": "HDCP 2.0 required",
+      "expected": "drm",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "drm-unsupported!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "widevine-dash-policy-tests/hdcp-2-1-required",
+      "category": "Widevine DASH (policy tests)",
+      "name": "HDCP 2.1 required",
+      "expected": "drm",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "drm-unsupported!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "widevine-dash-policy-tests/hdcp-2-2-required",
+      "category": "Widevine DASH (policy tests)",
+      "name": "HDCP 2.2 required",
+      "expected": "drm",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "drm-unsupported!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "widevine-dash-policy-tests/hdcp-no-digital-output",
+      "category": "Widevine DASH (policy tests)",
+      "name": "HDCP no digital output",
+      "expected": "drm",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "drm-unsupported!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "60fps-dash/hd-mp4-h264-clear",
+      "category": "60fps DASH",
+      "name": "HD (MP4, H264, Clear)",
+      "expected": "playable",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "network-error",
+        "network-error!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "60fps-dash/4k-mp4-h264-clear",
+      "category": "60fps DASH",
+      "name": "4K (MP4, H264, Clear)",
+      "expected": "playable",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "network-error",
+        "network-error!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "60fps-dash/hd-mp4-h264-widevine-cenc",
+      "category": "60fps DASH",
+      "name": "HD (MP4, H264, Widevine cenc)",
+      "expected": "drm",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "network-error",
+        "network-error!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "60fps-dash/4k-mp4-h264-widevine-cenc",
+      "category": "60fps DASH",
+      "name": "4K (MP4, H264, Widevine cenc)",
+      "expected": "drm",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "network-error",
+        "network-error!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "dash-multiple-base-urls/dash-multiple-base-urls",
+      "category": "DASH - Multiple base URLs",
+      "name": "DASH - Multiple base URLs",
+      "expected": "playable",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "network-error",
+        "network-error!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "dash-multiple-base-urls/dash-multiple-base-urls-fail-over",
+      "category": "DASH - Multiple base URLs",
+      "name": "DASH - Multiple base URLs (fail over)",
+      "expected": "playable",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "network-error",
+        "network-error!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "hls/apple-4x3-basic-stream-ts",
+      "category": "HLS",
+      "name": "Apple 4x3 basic stream (TS)",
+      "expected": "playable",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "network-error",
+        "network-error!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "hls/apple-16x9-basic-stream-ts",
+      "category": "HLS",
+      "name": "Apple 16x9 basic stream (TS)",
+      "expected": "playable",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "network-error",
+        "network-error!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "hls/apple-multivariant-playlist-advanced-ts",
+      "category": "HLS",
+      "name": "Apple multivariant playlist advanced (TS)",
+      "expected": "playable",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "network-error",
+        "network-error!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "hls/apple-multivariant-playlist-advanced-fmp4",
+      "category": "HLS",
+      "name": "Apple multivariant playlist advanced (FMP4)",
+      "expected": "playable",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "network-error",
+        "network-error!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "hls/apple-media-playlist-ts",
+      "category": "HLS",
+      "name": "Apple media playlist (TS)",
+      "expected": "playable",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "network-error",
+        "network-error!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "hls/apple-media-playlist-aac",
+      "category": "HLS",
+      "name": "Apple media playlist (AAC)",
+      "expected": "playable",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "network-error",
+        "network-error!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "hls/bitmovin-fmp4",
+      "category": "HLS",
+      "name": "Bitmovin (FMP4)",
+      "expected": "playable",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "network-error",
+        "network-error!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "ima-sample-ad-tags/vmap-pre-roll-single-ad-mid-roll-standard-pods-with-5-ads-every-10-seconds-for-1-40-post-roll-single-ad",
+      "category": "IMA sample ad tags",
+      "name": "VMAP pre-roll single ad, mid-roll standard pods with 5 ads every 10 seconds for 1:40, post-roll single ad",
+      "expected": "codec-dependent",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "media-unsupported-codec!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "ima-sample-ad-tags/vmap-empty-midroll",
+      "category": "IMA sample ad tags",
+      "name": "VMAP empty midroll",
+      "expected": "codec-dependent",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "media-unsupported-codec!"
+      ],
+      "adErrors": [
+        "ad-vast-error"
+      ],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "ima-sample-ad-tags/single-skippable-inline",
+      "category": "IMA sample ad tags",
+      "name": "Single skippable inline",
+      "expected": "codec-dependent",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "media-unsupported-codec!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "ima-sample-ad-tags/single-inline-linear",
+      "category": "IMA sample ad tags",
+      "name": "Single inline linear",
+      "expected": "codec-dependent",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "media-unsupported-codec!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "ima-sample-ad-tags/single-redirect-linear",
+      "category": "IMA sample ad tags",
+      "name": "Single redirect linear",
+      "expected": "codec-dependent",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "media-unsupported-codec!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "ima-sample-ad-tags/single-redirect-error",
+      "category": "IMA sample ad tags",
+      "name": "Single redirect error",
+      "expected": "expected-error",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "media-unsupported-codec!"
+      ],
+      "adErrors": [
+        "ad-vast-error"
+      ],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "ima-sample-ad-tags/single-redirect-broken-fallback",
+      "category": "IMA sample ad tags",
+      "name": "Single redirect broken (fallback)",
+      "expected": "codec-dependent",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "media-unsupported-codec!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "ima-sample-ad-tags/vmap-pre-roll",
+      "category": "IMA sample ad tags",
+      "name": "VMAP pre-roll",
+      "expected": "codec-dependent",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "media-unsupported-codec!"
+      ],
+      "adErrors": [
+        "ad-vast-error"
+      ],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "ima-sample-ad-tags/vmap-pre-roll-bumper",
+      "category": "IMA sample ad tags",
+      "name": "VMAP pre-roll + bumper",
+      "expected": "codec-dependent",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "media-unsupported-codec!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "ima-sample-ad-tags/vmap-post-roll",
+      "category": "IMA sample ad tags",
+      "name": "VMAP post-roll",
+      "expected": "codec-dependent",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "media-unsupported-codec!"
+      ],
+      "adErrors": [
+        "ad-vast-error"
+      ],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "ima-sample-ad-tags/vmap-post-roll-bumper",
+      "category": "IMA sample ad tags",
+      "name": "VMAP post-roll + bumper",
+      "expected": "codec-dependent",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "media-unsupported-codec!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "ima-sample-ad-tags/vmap-pre-mid-and-post-rolls-single-ads",
+      "category": "IMA sample ad tags",
+      "name": "VMAP pre-, mid- and post-rolls, single ads",
+      "expected": "codec-dependent",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "media-unsupported-codec!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "ima-sample-ad-tags/vmap-pre-roll-single-ad-mid-roll-standard-pod-with-3-ads-post-roll-single-ad",
+      "category": "IMA sample ad tags",
+      "name": "VMAP pre-roll single ad, mid-roll standard pod with 3 ads, post-roll single ad",
+      "expected": "codec-dependent",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "media-unsupported-codec!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "ima-sample-ad-tags/vmap-pre-roll-single-ad-mid-roll-optimized-pod-with-3-ads-post-roll-single-ad",
+      "category": "IMA sample ad tags",
+      "name": "VMAP pre-roll single ad, mid-roll optimized pod with 3 ads, post-roll single ad",
+      "expected": "codec-dependent",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "media-unsupported-codec!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "ima-sample-ad-tags/vmap-pre-roll-single-ad-mid-roll-standard-pod-with-3-ads-post-roll-single-ad-bumpers-around-all-ad-breaks",
+      "category": "IMA sample ad tags",
+      "name": "VMAP pre-roll single ad, mid-roll standard pod with 3 ads, post-roll single ad (bumpers around all ad breaks)",
+      "expected": "codec-dependent",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "media-unsupported-codec!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "ima-sample-ad-tags/vmap-pre-roll-single-ad-mid-roll-optimized-pod-with-3-ads-post-roll-single-ad-bumpers-around-all-ad-breaks",
+      "category": "IMA sample ad tags",
+      "name": "VMAP pre-roll single ad, mid-roll optimized pod with 3 ads, post-roll single ad (bumpers around all ad breaks)",
+      "expected": "codec-dependent",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "media-unsupported-codec!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "ima-sample-ad-tags/vmap-full-empty-full-midrolls",
+      "category": "IMA sample ad tags",
+      "name": "VMAP full, empty, full midrolls",
+      "expected": "codec-dependent",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "media-unsupported-codec!"
+      ],
+      "adErrors": [
+        "ad-vast-error"
+      ],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "ima-sample-ad-tags/vmap-midroll-at-1765-s",
+      "category": "IMA sample ad tags",
+      "name": "VMAP midroll at 1765 s",
+      "expected": "playable",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "media-unsupported-codec!"
+      ],
+      "adErrors": [
+        "ad-vast-error"
+      ],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "ima-sample-ad-tags/vmap-midroll-ad-pod-at-5-s-with-10-skippable-ads",
+      "category": "IMA sample ad tags",
+      "name": "VMAP midroll ad pod at 5 s with 10 skippable ads",
+      "expected": "playable",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "media-unsupported-codec!"
+      ],
+      "adErrors": [
+        "ad-vast-error"
+      ],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "av1/sd-webm-clear",
+      "category": "AV1",
+      "name": "SD (WebM, Clear)",
+      "expected": "codec-dependent",
+      "outcome": "played",
+      "playedSeconds": 2.1,
+      "engine": "native",
+      "errors": [],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": {
+        "width": 640,
+        "height": 338
+      },
+      "pageErrors": []
+    },
+    {
+      "id": "av1/hd-dash-widevine-cenc-l3-svt-av1",
+      "category": "AV1",
+      "name": "HD (DASH, Widevine cenc, L3, SVT-AV1)",
+      "expected": "drm",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "network-error",
+        "network-error!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "subtitles/ttml-positioning",
+      "category": "Subtitles",
+      "name": "TTML positioning",
+      "expected": "expected-error",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "subtitle-format-unsupported",
+        "media-unsupported-codec!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "subtitles/ttml-japanese-features",
+      "category": "Subtitles",
+      "name": "TTML Japanese features",
+      "expected": "expected-error",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "subtitle-format-unsupported",
+        "media-unsupported-codec!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "subtitles/ttml-netflix-japanese-examples-imsc1-1",
+      "category": "Subtitles",
+      "name": "TTML Netflix Japanese examples (IMSC1.1)",
+      "expected": "expected-error",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "subtitle-format-unsupported",
+        "media-unsupported-codec!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "subtitles/webvtt-positioning",
+      "category": "Subtitles",
+      "name": "WebVTT positioning",
+      "expected": "playable",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "media-unsupported-codec!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 1,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "subtitles/webvtt-japanese-features",
+      "category": "Subtitles",
+      "name": "WebVTT Japanese features",
+      "expected": "playable",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "media-unsupported-codec!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 1,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "subtitles/substation-alpha-positioning",
+      "category": "Subtitles",
+      "name": "SubStation Alpha positioning",
+      "expected": "expected-error",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "subtitle-format-unsupported",
+        "media-unsupported-codec!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "subtitles/substation-alpha-styling",
+      "category": "Subtitles",
+      "name": "SubStation Alpha styling",
+      "expected": "expected-error",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "subtitle-format-unsupported",
+        "media-unsupported-codec!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "subtitles/mpeg-4-timed-text",
+      "category": "Subtitles",
+      "name": "MPEG-4 Timed Text",
+      "expected": "playable",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "media-unsupported-codec!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "subtitles/subrip-muxed-into-mkv",
+      "category": "Subtitles",
+      "name": "SubRip muxed into MKV",
+      "expected": "codec-dependent",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "media-unsupported-codec!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "subtitles/overlapping-ssa-muxed-into-mkv",
+      "category": "Subtitles",
+      "name": "Overlapping SSA muxed into MKV",
+      "expected": "codec-dependent",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "media-unsupported-codec!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "progressive/dizzy-mp4",
+      "category": "Progressive",
+      "name": "Dizzy (MP4)",
+      "expected": "playable",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "media-unsupported-codec!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "progressive/apple-10s-aac",
+      "category": "Progressive",
+      "name": "Apple 10s (AAC)",
+      "expected": "playable",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "media-unsupported-codec!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "progressive/apple-10s-ts",
+      "category": "Progressive",
+      "name": "Apple 10s (TS)",
+      "expected": "expected-error",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "media-unsupported-codec!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "progressive/android-screens-mkv",
+      "category": "Progressive",
+      "name": "Android screens (MKV)",
+      "expected": "codec-dependent",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "media-unsupported-codec!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "progressive/screens-360p-webm-vp9",
+      "category": "Progressive",
+      "name": "Screens 360p (WebM, VP9)",
+      "expected": "playable",
+      "outcome": "played",
+      "playedSeconds": 2.3,
+      "engine": "native",
+      "errors": [],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": {
+        "width": 640,
+        "height": 360
+      },
+      "pageErrors": []
+    },
+    {
+      "id": "progressive/screens-480p-fmp4-h264",
+      "category": "Progressive",
+      "name": "Screens 480p (FMP4, H264)",
+      "expected": "playable",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "media-unsupported-codec!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "progressive/screens-1080p-fmp4-h264",
+      "category": "Progressive",
+      "name": "Screens 1080p (FMP4, H264)",
+      "expected": "playable",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "media-unsupported-codec!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "progressive/screens-audio-fmp4",
+      "category": "Progressive",
+      "name": "Screens audio (FMP4)",
+      "expected": "playable",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "media-unsupported-codec!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "progressive/google-play-mp3",
+      "category": "Progressive",
+      "name": "Google Play (MP3)",
+      "expected": "playable",
+      "outcome": "played",
+      "playedSeconds": 2.4,
+      "engine": "native",
+      "errors": [],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "progressive/google-play-ogg-vorbis",
+      "category": "Progressive",
+      "name": "Google Play (Ogg, Vorbis)",
+      "expected": "codec-dependent",
+      "outcome": "played",
+      "playedSeconds": 2.5,
+      "engine": "native",
+      "errors": [],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "progressive/google-play-flac",
+      "category": "Progressive",
+      "name": "Google Play (Flac)",
+      "expected": "playable",
+      "outcome": "played",
+      "playedSeconds": 2,
+      "engine": "native",
+      "errors": [],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "progressive/big-buck-bunny-480p-mp4-av1",
+      "category": "Progressive",
+      "name": "Big Buck Bunny 480p (MP4, AV1)",
+      "expected": "codec-dependent",
+      "outcome": "played",
+      "playedSeconds": 2.3,
+      "engine": "native",
+      "errors": [],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": {
+        "width": 854,
+        "height": 480
+      },
+      "pageErrors": []
+    },
+    {
+      "id": "progressive/one-hour-frame-counter-mp4",
+      "category": "Progressive",
+      "name": "One hour frame counter (MP4)",
+      "expected": "playable",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "media-unsupported-codec!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "progressive/mpeg-h-hd-mp4-h265",
+      "category": "Progressive",
+      "name": "MPEG-H HD (MP4, H265)",
+      "expected": "codec-dependent",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "media-unsupported-codec!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "iamf-extension/7-1-4-aac",
+      "category": "IAMF (extension)",
+      "name": "7.1.4 AAC",
+      "expected": "codec-dependent",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "media-unsupported-codec!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "iamf-extension/7-1-4-flac",
+      "category": "IAMF (extension)",
+      "name": "7.1.4 FLAC",
+      "expected": "codec-dependent",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "media-unsupported-codec!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "iamf-extension/7-1-4-opus",
+      "category": "IAMF (extension)",
+      "name": "7.1.4 Opus",
+      "expected": "codec-dependent",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "media-unsupported-codec!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "iamf-extension/7-1-4-pcm",
+      "category": "IAMF (extension)",
+      "name": "7.1.4 PCM",
+      "expected": "codec-dependent",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "media-unsupported-codec!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "hagc-st-2094-50/av1-beach-sparse-t35",
+      "category": "HAGC (ST 2094-50)",
+      "name": "AV1 Beach (Sparse T35)",
+      "expected": "codec-dependent",
+      "outcome": "played",
+      "playedSeconds": 2.2,
+      "engine": "native",
+      "errors": [],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": {
+        "width": 1280,
+        "height": 720
+      },
+      "pageErrors": []
+    },
+    {
+      "id": "hagc-st-2094-50/hevc-beach-sparse-t35",
+      "category": "HAGC (ST 2094-50)",
+      "name": "HEVC Beach (Sparse T35)",
+      "expected": "codec-dependent",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "media-unsupported-codec!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "hagc-st-2094-50/av1-rooftop-everyframe-t35",
+      "category": "HAGC (ST 2094-50)",
+      "name": "AV1 Rooftop (Everyframe T35)",
+      "expected": "codec-dependent",
+      "outcome": "played",
+      "playedSeconds": 2.3,
+      "engine": "native",
+      "errors": [],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": {
+        "width": 1280,
+        "height": 720
+      },
+      "pageErrors": []
+    },
+    {
+      "id": "hagc-st-2094-50/hevc-rooftop-everyframe-t35",
+      "category": "HAGC (ST 2094-50)",
+      "name": "HEVC Rooftop (Everyframe T35)",
+      "expected": "codec-dependent",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "media-unsupported-codec!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    },
+    {
+      "id": "hagc-st-2094-50/hevc-lights-sdr-base-sparse-t35",
+      "category": "HAGC (ST 2094-50)",
+      "name": "HEVC Lights (SDR Base, Sparse T35)",
+      "expected": "codec-dependent",
+      "outcome": "error",
+      "playedSeconds": 0,
+      "engine": null,
+      "errors": [
+        "media-unsupported-codec!"
+      ],
+      "adErrors": [],
+      "adStarts": 0,
+      "qualities": 0,
+      "audioTracks": 0,
+      "subtitles": 0,
+      "video": null,
+      "pageErrors": []
+    }
+  ]
+}
