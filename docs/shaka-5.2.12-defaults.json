@@ -1,0 +1,143 @@
+{
+ "version": "v5.2.12",
+ "streaming": {
+  "bufferingGoal": 10,
+  "rebufferingGoal": 0,
+  "bufferBehind": 30,
+  "lowLatencyMode": true,
+  "gapDetectionThreshold": 0.5,
+  "gapJumpTimerTime": 0.25,
+  "gapPadding": 0,
+  "stallEnabled": true,
+  "stallThreshold": 1,
+  "stallSkip": 0.1,
+  "segmentPrefetchLimit": 1,
+  "loadTimeout": 30,
+  "preferNativeHls": false,
+  "preferNativeDash": false,
+  "useNativeHlsForFairPlay": true,
+  "evictionGoal": 1,
+  "safeSeekOffset": 5,
+  "safeSeekEndOffset": 0,
+  "returnToEndOfLiveWindowWhenOutside": false,
+  "stopFetchingOnPause": false,
+  "updateIntervalSeconds": 1,
+  "retryParameters": {
+   "maxAttempts": 2,
+   "baseDelay": 1000,
+   "backoffFactor": 2,
+   "fuzzFactor": 0.5,
+   "timeout": 30000,
+   "stallTimeout": 5000,
+   "connectionTimeout": 10000
+  },
+  "liveSync": {
+   "enabled": false,
+   "targetLatency": 0.5,
+   "targetLatencyTolerance": 0.5,
+   "maxPlaybackRate": 1.1,
+   "minPlaybackRate": 0.95,
+   "panicMode": false,
+   "panicThreshold": 60,
+   "dynamicTargetLatency": {
+    "enabled": false,
+    "stabilityThreshold": 60,
+    "rebufferIncrement": 0.5,
+    "maxAttempts": 10,
+    "maxLatency": 4,
+    "minLatency": 1
+   }
+  }
+ },
+ "manifestRetry": {
+  "maxAttempts": 2,
+  "baseDelay": 1000,
+  "backoffFactor": 2,
+  "fuzzFactor": 0.5,
+  "timeout": 30000,
+  "stallTimeout": 5000,
+  "connectionTimeout": 10000
+ },
+ "drmRetry": {
+  "maxAttempts": 2,
+  "baseDelay": 1000,
+  "backoffFactor": 2,
+  "fuzzFactor": 0.5,
+  "timeout": 30000,
+  "stallTimeout": 5000,
+  "connectionTimeout": 10000
+ },
+ "manifest": {
+  "defaultPresentationDelay": 0,
+  "availabilityWindowOverride": null
+ },
+ "abr": {
+  "enabled": true,
+  "defaultBandwidthEstimate": 1000000,
+  "restrictToElementSize": false,
+  "restrictToScreenSize": false,
+  "switchInterval": 8,
+  "bandwidthUpgradeTarget": 0.85,
+  "bandwidthDowngradeTarget": 0.95,
+  "clearBufferSwitch": false,
+  "safeMarginSwitch": 0,
+  "restrictions": {
+   "minWidth": 0,
+   "maxWidth": null,
+   "minHeight": 0,
+   "maxHeight": null,
+   "minPixels": 0,
+   "maxPixels": null,
+   "minFrameRate": 0,
+   "maxFrameRate": null,
+   "minBandwidth": 0,
+   "maxBandwidth": null,
+   "minChannelsCount": 0,
+   "maxChannelsCount": null
+  }
+ },
+ "restrictions": {
+  "minWidth": 0,
+  "maxWidth": null,
+  "minHeight": 0,
+  "maxHeight": null,
+  "minPixels": 0,
+  "maxPixels": null,
+  "minFrameRate": 0,
+  "maxFrameRate": null,
+  "minBandwidth": 0,
+  "maxBandwidth": null,
+  "minChannelsCount": 0,
+  "maxChannelsCount": null
+ },
+ "textDisplayer": {
+  "fontScaleFactor": 1,
+  "positionArea": 0,
+  "subtitleDelay": 0,
+  "suspendRenderingWhenHidden": true
+ },
+ "lowLatency": {
+  "streaming": {
+   "inaccurateManifestTolerance": 0,
+   "segmentPrefetchLimit": 2,
+   "updateIntervalSeconds": 0.1,
+   "maxDisabledTime": 1,
+   "retryParameters": {
+    "baseDelay": 100
+   }
+  },
+  "manifest": {
+   "dash": {
+    "autoCorrectDrift": false
+   },
+   "retryParameters": {
+    "baseDelay": 100
+   }
+  },
+  "drm": {
+   "retryParameters": {
+    "baseDelay": 100
+   }
+  }
+ }
+}

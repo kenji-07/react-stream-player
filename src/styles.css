@@ -1,0 +1,452 @@
+/* react-stream-player — minimal layout for the player root, the package-owned
+   layers (captions, ads, status, watermark), Reel layout and web fullscreen.
+   The content controls are Artplayer's own (its stylesheet is injected by
+   Artplayer at runtime). Values use CSS custom properties set per instance. */
+
+.rsp-root {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: var(--rsp-aspect-ratio, 16 / 9);
+  overflow: hidden;
+  background: #000 var(--rsp-poster, none) center / contain no-repeat;
+  color: #fff;
+  contain: layout paint;
+  -webkit-tap-highlight-color: transparent;
+}
+.rsp-root:focus {
+  outline: none;
+}
+.rsp-root:focus-visible {
+  outline: 2px solid #4da3ff;
+  outline-offset: 2px;
+}
+.rsp-stage,
+.rsp-native-frame {
+  position: absolute;
+  inset: 0;
+}
+.rsp-stage > .art-video-player {
+  width: 100% !important;
+  height: 100% !important;
+}
+.rsp-video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: #000;
+}
+
+/* Layers participate in the player's stacking context (no z-index here). */
+.rsp-layers {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.rsp-text-layer,
+.rsp-watermark-layer,
+.rsp-ad-layer,
+.rsp-status-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.rsp-text-layer {
+  z-index: 25;
+}
+.rsp-watermark-layer {
+  z-index: 30;
+}
+.rsp-ad-layer {
+  z-index: 45;
+}
+.rsp-ad-layer.rsp-ad-layer-linear {
+  z-index: 110;
+}
+.rsp-status-layer {
+  z-index: 115;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ---------------------------------------------------------------- captions */
+.rsp-text-layer {
+  --rsp-caption-lift: 0px;
+  transition: --rsp-caption-lift var(--rsp-motion-duration, 200ms);
+}
+.art-video-player.art-control-show .rsp-text-layer {
+  --rsp-caption-lift: 56px;
+}
+.rsp-cues,
+.rsp-text-layer > .shaka-text-container {
+  position: absolute !important;
+  left: 5%;
+  right: 5%;
+  top: 0;
+  bottom: calc(var(--rsp-subtitle-bottom, 40px) + var(--rsp-caption-lift) + env(safe-area-inset-bottom, 0px)) !important;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  font-size: var(--rsp-subtitle-font-size, 20px);
+  font-family: var(--rsp-subtitle-font-family, system-ui, sans-serif);
+  color: var(--rsp-subtitle-color, #fff);
+  line-height: 1.35;
+  text-align: center;
+  pointer-events: none;
+  transition: bottom var(--rsp-motion-duration, 200ms) var(--rsp-motion-easing, ease);
+}
+.rsp-cue {
+  max-width: 100%;
+}
+.rsp-cue-text,
+.rsp-text-layer > .shaka-text-container span {
+  background-color: var(--rsp-subtitle-background, rgba(0, 0, 0, 0.6)) !important;
+  padding: 0.08em 0.35em;
+  white-space: pre-wrap;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+/* ---------------------------------------------------------------- live */
+.rsp-live .art-control-progress,
+.rsp-live .art-control-time {
+  display: none !important;
+}
+.art-control-rsp-live .rsp-live-label {
+  font: 700 12px/1 system-ui, sans-serif;
+  letter-spacing: 0.04em;
+  padding: 4px 6px;
+  border-radius: 3px;
+  background: #d00;
+  color: #fff;
+}
+.rsp-live-behind .art-control-rsp-live .rsp-live-label {
+  background: #555;
+}
+
+/* ---------------------------------------------------------------- controls */
+.rsp-fullscreen-icons {
+  display: inline-flex;
+}
+.rsp-fullscreen-icons .rsp-fs-off,
+.rsp-fs-active .rsp-fullscreen-icons .rsp-fs-on {
+  display: none;
+}
+.rsp-fs-active .rsp-fullscreen-icons .rsp-fs-off {
+  display: inline-flex;
+}
+.rsp-root .art-control:focus-visible,
+.rsp-root .art-setting-item:focus-visible,
+.rsp-root .art-control-progress:focus-visible {
+  outline: 2px solid #4da3ff;
+  outline-offset: -2px;
+}
+.rsp-context-rates {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.rsp-context-rate {
+  cursor: pointer;
+  padding: 0 2px;
+}
+.rsp-context-rate:hover {
+  text-decoration: underline;
+}
+
+/* Content controls are not operable during linear ads. */
+.rsp-root[data-rsp-ad-active] .art-bottom,
+.rsp-root[data-rsp-ad-active] .art-mask,
+.rsp-root[data-rsp-ad-active] .art-settings,
+.rsp-root[data-rsp-ad-active] .art-loading {
+  display: none !important;
+}
+
+/* ---------------------------------------------------------------- ads */
+.rsp-ad {
+  position: absolute;
+  pointer-events: auto;
+  opacity: 0;
+  font-family: system-ui, sans-serif;
+  transition: opacity var(--rsp-motion-duration, 200ms) var(--rsp-motion-easing, ease),
+    transform var(--rsp-motion-duration, 200ms) var(--rsp-motion-easing, ease);
+}
+.rsp-ad.rsp-ad-visible {
+  opacity: 1;
+}
+.rsp-ad-linear {
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: #000;
+}
+.rsp-ad-linear .rsp-ad-media,
+.rsp-ad-linear .rsp-ad-media-video {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.rsp-ad-media-video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000;
+}
+.rsp-ad-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+.rsp-ad-text {
+  max-width: 90%;
+  padding: 0.8em 1.2em;
+  border-radius: 8px;
+  background: #222;
+  color: #fff;
+  font-size: 22px;
+  line-height: 1.35;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.rsp-ad-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.rsp-ad-linear .rsp-ad-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0px));
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.75));
+}
+.rsp-ad-badge {
+  margin-right: auto;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.65);
+  font: 600 13px/1.2 system-ui, sans-serif;
+}
+.rsp-ad-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.65);
+  color: #fff;
+  font: 600 14px/1 system-ui, sans-serif;
+  text-decoration: none;
+  cursor: pointer;
+}
+.rsp-ad-button:disabled {
+  opacity: 0.65;
+  cursor: default;
+}
+.rsp-ad-button:focus-visible,
+.rsp-error-retry:focus-visible {
+  outline: 2px solid #4da3ff;
+  outline-offset: 2px;
+}
+.rsp-ad-overlay {
+  top: 12px;
+  left: 50%;
+  transform: translate(-50%, -6px);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: min(92%, 640px);
+  padding: 8px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.78);
+}
+.rsp-ad-overlay.rsp-ad-visible {
+  transform: translate(-50%, 0);
+}
+.rsp-ad-overlay .rsp-ad-text {
+  font-size: 16px;
+  padding: 0.4em 0.6em;
+}
+.rsp-ad-overlay .rsp-ad-image {
+  max-height: 90px;
+}
+.rsp-ad-layer-linear .rsp-ad-overlay {
+  display: none;
+}
+.rsp-ima-container {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.rsp-ad-layer-linear .rsp-ima-container {
+  pointer-events: auto;
+}
+
+/* ---------------------------------------------------------------- status */
+.rsp-error {
+  pointer-events: auto;
+  max-width: min(90%, 420px);
+  padding: 16px 20px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.88);
+  color: #fff;
+  font: 15px/1.45 system-ui, sans-serif;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity var(--rsp-motion-duration, 200ms) var(--rsp-motion-easing, ease),
+    transform var(--rsp-motion-duration, 200ms) var(--rsp-motion-easing, ease);
+}
+.rsp-error.rsp-visible {
+  opacity: 1;
+  transform: none;
+}
+.rsp-error-title {
+  margin: 0 0 6px;
+  font-weight: 700;
+}
+.rsp-error-message {
+  margin: 0 0 8px;
+}
+.rsp-error-code {
+  margin: 0 0 12px;
+  font: 12px/1.2 ui-monospace, monospace;
+  opacity: 0.7;
+}
+.rsp-error-retry {
+  min-height: 44px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 4px;
+  background: #fff;
+  color: #000;
+  font: 600 14px system-ui, sans-serif;
+  cursor: pointer;
+}
+.rsp-render-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  text-align: center;
+}
+.rsp-spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 44px;
+  height: 44px;
+  margin: -22px 0 0 -22px;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: rsp-spin 0.9s linear infinite;
+}
+.rsp-spinner[hidden] {
+  display: none;
+}
+@keyframes rsp-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---------------------------------------------------------------- watermark */
+.rsp-watermark {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #fff;
+  font: 600 14px/1 system-ui, sans-serif;
+  text-shadow: 0 1px 2px #000;
+  user-select: none;
+}
+.rsp-watermark img {
+  max-height: 32px;
+}
+.rsp-watermark[data-position='top-left'] {
+  top: 12px;
+  left: 12px;
+}
+.rsp-watermark[data-position='top-right'] {
+  top: 12px;
+  right: 12px;
+}
+.rsp-watermark[data-position='bottom-left'] {
+  bottom: 64px;
+  left: 12px;
+}
+.rsp-watermark[data-position='bottom-right'] {
+  bottom: 64px;
+  right: 12px;
+}
+.rsp-watermark[data-position='center'] {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* ---------------------------------------------------------------- reel */
+.rsp-root[data-layout='reel'] {
+  max-width: min(100%, var(--rsp-reel-max-width, 420px));
+  margin-inline: auto;
+}
+.rsp-root[data-layout='reel'] .art-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.rsp-root[data-layout='reel'] .art-control {
+  min-width: 44px;
+  min-height: 44px;
+}
+.rsp-root[data-layout='reel'] .rsp-ad-overlay {
+  top: calc(12px + env(safe-area-inset-top, 0px));
+}
+
+/* ---------------------------------------------------------------- web fullscreen */
+.rsp-root[data-rsp-web-fullscreen] {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  height: 100dvh !important;
+  max-width: none !important;
+  aspect-ratio: auto !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  z-index: 2147483000 !important;
+}
+
+/* ---------------------------------------------------------------- motion */
+.rsp-root[data-rsp-motion='reduced'],
+.rsp-root[data-rsp-motion='reduced'] * {
+  transition-duration: 0ms !important;
+  animation-duration: 0ms !important;
+  animation-iteration-count: 1 !important;
+}
+.rsp-root[data-rsp-motion='reduced'] .rsp-spinner {
+  animation: none;
+  border-top-color: rgba(255, 255, 255, 0.3);
+}
+
+.rsp-visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}

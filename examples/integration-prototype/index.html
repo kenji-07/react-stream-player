@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Integration prototype</title>
+    <style>
+      body { margin: 0; font-family: system-ui, sans-serif; background: #111; color: #eee; }
+      #stage { width: 800px; max-width: 100%; margin: 16px auto; }
+      .proto-host, .proto-react-host > div { width: 100%; aspect-ratio: 16 / 9; }
+      .proto-host.proto-reel { width: 360px; aspect-ratio: 9 / 16; margin: 0 auto; }
+      .proto-text-container { position: absolute; inset: 0; pointer-events: none; z-index: 20; }
+    </style>
+  </head>
+  <body>
+    <div id="stage"></div>
+    <script type="module" src="./dist/main.js"></script>
+  </body>
+</html>

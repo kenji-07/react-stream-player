@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>react-stream-player e2e harness</title>
+    <link rel="stylesheet" href="./dist/harness.css" />
+    <style>
+      body { margin: 0; font-family: system-ui, sans-serif; background: #f4f4f4; }
+      #app { width: 720px; max-width: 100%; margin: 20px auto; }
+      #outside { margin: 20px; }
+    </style>
+  </head>
+  <body>
+    <input id="outside" aria-label="outside input" />
+    <div id="app"></div>
+    <div style="height: 1200px"></div>
+    <script type="module" src="./dist/harness.js"></script>
+  </body>
+</html>

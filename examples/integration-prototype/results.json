@@ -1,0 +1,328 @@
+{
+  "date": "2026-10-09T15:33:49.903Z",
+  "browser": "Chromium 141.0.7390.37 (headless, Playwright 1.56.1)",
+  "platform": "linux x64",
+  "versions": {
+    "shaka-player": "5.2.12",
+    "artplayer": "5.4.0",
+    "react": "19.3.0"
+  },
+  "fixtures": {
+    "codec": "vp9",
+    "videoCodec": "vp09.00.30.08",
+    "audioCodec": "opus",
+    "durationSeconds": 20,
+    "ffmpeg": "ffmpeg version 6.1.1-3ubuntu5 Copyright (c) 2000-2023 the FFmpeg developers"
+  },
+  "results": [
+    {
+      "gate": 1,
+      "name": "MP4 quality switch through Artplayer settings preserves time/playing/rate/volume/captions",
+      "pass": true,
+      "details": {
+        "before": {
+          "time": 4.015401,
+          "paused": false,
+          "rate": 1.5,
+          "volume": 0.4,
+          "muted": false,
+          "src": "http://127.0.0.1:38093/fixtures/mp4/vod-360p.mp4",
+          "showing": [
+            "English"
+          ],
+          "videos": 1
+        },
+        "after": {
+          "time": 4.461861,
+          "paused": false,
+          "rate": 1.5,
+          "volume": 0.4,
+          "muted": false,
+          "src": "http://127.0.0.1:38093/fixtures/mp4/vod-540p.mp4",
+          "showing": [
+            "English"
+          ],
+          "videos": 1
+        }
+      }
+    },
+    {
+      "gate": 1,
+      "name": "Only the selected MP4 variant is requested (no preloading of others)",
+      "pass": true,
+      "details": {
+        "requested": [
+          "/fixtures/mp4/vod-360p.mp4",
+          "/fixtures/mp4/vod-540p.mp4"
+        ]
+      }
+    },
+    {
+      "gate": 1,
+      "name": "Paused MP4 quality switch stays paused at the same position",
+      "pass": true,
+      "details": {
+        "pausedBefore": {
+          "time": 4.461861,
+          "paused": true,
+          "rate": 1.5,
+          "volume": 0.4,
+          "muted": false,
+          "src": "http://127.0.0.1:38093/fixtures/mp4/vod-540p.mp4",
+          "showing": [
+            "English"
+          ],
+          "videos": 1
+        },
+        "pausedAfter": {
+          "time": 4.461861,
+          "paused": true,
+          "rate": 1.5,
+          "volume": 0.4,
+          "muted": false,
+          "src": "http://127.0.0.1:38093/fixtures/mp4/vod-216p.mp4",
+          "showing": [
+            "English"
+          ],
+          "videos": 1
+        }
+      }
+    },
+    {
+      "gate": 1,
+      "name": "Artplayer volume persistence is disabled (no localStorage writes)",
+      "pass": true,
+      "details": {
+        "stored": null
+      }
+    },
+    {
+      "gate": 1,
+      "name": "Context menu: version link and src info panel removed",
+      "pass": true,
+      "details": {
+        "ctxItems": [
+          "art-contextmenu art-contextmenu-close"
+        ]
+      }
+    },
+    {
+      "gate": 2,
+      "name": "HLS: Shaka engine plays through the same Artplayer UI; manifest qualities listed",
+      "pass": true,
+      "details": {
+        "qualities": [
+          "Auto",
+          "216p",
+          "360p",
+          "540p"
+        ]
+      }
+    },
+    {
+      "gate": 3,
+      "name": "HLS: manual quality via UI disables ABR and switches effective rendition",
+      "pass": true,
+      "details": {}
+    },
+    {
+      "gate": 3,
+      "name": "HLS: Auto via UI re-enables ABR",
+      "pass": true,
+      "details": {}
+    },
+    {
+      "gate": 3,
+      "name": "HLS: audio track selection via UI",
+      "pass": true,
+      "details": {
+        "audio": "Mongolian"
+      }
+    },
+    {
+      "gate": 3,
+      "name": "HLS: manifest subtitle selection renders via Shaka UITextDisplayer inside the player DOM",
+      "pass": true,
+      "details": {}
+    },
+    {
+      "gate": 3,
+      "name": "HLS: switching between multiple subtitle tracks",
+      "pass": true,
+      "details": {}
+    },
+    {
+      "gate": 3,
+      "name": "HLS: subtitles Off; no duplicate native rendering",
+      "pass": true,
+      "details": {
+        "textOff": {
+          "active": false,
+          "shown": "",
+          "nativeShowing": 0
+        },
+        "heightAfterAudio": 540
+      }
+    },
+    {
+      "gate": 2,
+      "name": "DASH: Shaka engine plays through the same Artplayer UI; manifest qualities listed",
+      "pass": true,
+      "details": {
+        "qualities": [
+          "Auto",
+          "216p",
+          "360p",
+          "540p"
+        ]
+      }
+    },
+    {
+      "gate": 3,
+      "name": "DASH: manual quality via UI disables ABR and switches effective rendition",
+      "pass": true,
+      "details": {}
+    },
+    {
+      "gate": 3,
+      "name": "DASH: Auto via UI re-enables ABR",
+      "pass": true,
+      "details": {}
+    },
+    {
+      "gate": 3,
+      "name": "DASH: audio track selection via UI",
+      "pass": true,
+      "details": {
+        "audio": "Mongolian"
+      }
+    },
+    {
+      "gate": 3,
+      "name": "DASH: manifest subtitle selection renders via Shaka UITextDisplayer inside the player DOM",
+      "pass": true,
+      "details": {}
+    },
+    {
+      "gate": 3,
+      "name": "DASH: switching between multiple subtitle tracks",
+      "pass": true,
+      "details": {}
+    },
+    {
+      "gate": 3,
+      "name": "DASH: subtitles Off; no duplicate native rendering",
+      "pass": true,
+      "details": {
+        "textOff": {
+          "active": false,
+          "shown": "",
+          "nativeShowing": 0
+        },
+        "heightAfterAudio": 216
+      }
+    },
+    {
+      "gate": 4,
+      "name": "Reel 9:16 layout with fit=contain on the video element",
+      "pass": true,
+      "details": {
+        "ratio": 0.5625,
+        "objectFit": "contain",
+        "videoW": 360,
+        "videoH": 640,
+        "hostObjectFit": "fill"
+      }
+    },
+    {
+      "gate": 4,
+      "name": "Reel 9:16 layout with fit=cover on the video element",
+      "pass": true,
+      "details": {
+        "ratio": 0.5625,
+        "objectFit": "cover",
+        "videoW": 360,
+        "videoH": 640,
+        "hostObjectFit": "fill"
+      }
+    },
+    {
+      "gate": 5,
+      "name": "StrictMode + ~60 rerenders with new inline objects/callbacks: no reload, one preroll",
+      "pass": true,
+      "details": {
+        "counters": {
+          "engineCreated": 2,
+          "engineDestroyed": 1,
+          "shakaCreated": 1,
+          "shakaDestroyed": 0,
+          "loads": 2,
+          "artCreated": 2,
+          "artDestroyed": 1
+        },
+        "react": {
+          "adStarts": 1,
+          "renders": 120
+        },
+        "videos": 1,
+        "artPlayers": 1,
+        "events": [
+          "adstart:pre-1@1"
+        ],
+        "note": "loads=2 is the Strict Mode development double-mount; rerenders add none"
+      }
+    },
+    {
+      "gate": 6,
+      "name": "Strict Mode cleanup leaves exactly one video, one Artplayer and one live Shaka engine",
+      "pass": true,
+      "details": {
+        "liveShaka": 1
+      }
+    },
+    {
+      "gate": 6,
+      "name": "Source replacement destroys the Shaka engine and keeps a single content video",
+      "pass": true,
+      "details": {
+        "counters": {
+          "engineCreated": 3,
+          "engineDestroyed": 2,
+          "shakaCreated": 1,
+          "shakaDestroyed": 1,
+          "loads": 3,
+          "artCreated": 3,
+          "artDestroyed": 2
+        },
+        "videos": 1,
+        "src": "http://127.0.0.1:38093/fixtures/mp4/vod-360p.mp4",
+        "react": {
+          "adStarts": 2,
+          "renders": 182
+        }
+      }
+    },
+    {
+      "gate": 6,
+      "name": "Unmount tears everything down (no video, engines/UI destroyed == created)",
+      "pass": true,
+      "details": {
+        "counters": {
+          "engineCreated": 3,
+          "engineDestroyed": 3,
+          "shakaCreated": 1,
+          "shakaDestroyed": 1,
+          "loads": 3,
+          "artCreated": 3,
+          "artDestroyed": 3
+        },
+        "videos": 0,
+        "artInstances": 0
+      }
+    }
+  ],
+  "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ],
+  "gate7": "externally unverified: no physical iPhone/iPad Safari device was available in this environment"
+}
