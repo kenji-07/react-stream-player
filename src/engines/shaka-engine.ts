@@ -1,6 +1,5 @@
 import { fromShakaError, playerError, PlayerErrorImpl } from '../errors.js';
 import { isOriginAllowed, matchCredentialRules, resolveRuleHeaders, type NormalizedCredentialRule } from '../security/credentials.js';
-import { originOf } from '../security/url.js';
 import type { DrmConfig, LicenseRequest, LicenseResponse, NetworkConfig, RequestType } from '../types/config.js';
 import type { TimeRange } from '../types/state.js';
 import type { AudioTrack, QualityTrack, SubtitleKind } from '../types/tracks.js';

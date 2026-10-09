@@ -9,6 +9,7 @@
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
     "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true,
     "exactOptionalPropertyTypes": false,
     "useUnknownInCatchVariables": true,
     "isolatedModules": true,

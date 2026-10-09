@@ -3,7 +3,11 @@
   "compilerOptions": {
     "noEmit": false,
     "outDir": "dist",
-    "rootDir": "src"
+    "rootDir": "src",
+    // src/ is not published: embed sources in the JS maps and skip declaration
+    // maps (they would point at files that are not in the package).
+    "inlineSources": true,
+    "declarationMap": false
   },
   "include": ["src"]
 }

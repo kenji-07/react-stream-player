@@ -154,6 +154,11 @@ describe('errors', () => {
     expect(fromShakaError(error).code).toBe(code);
   });
 
+  it('reports the HTTP status of a failed license request', () => {
+    const e = fromShakaError({ category: 6, code: 6007, severity: 2, data: [{ category: 1, code: 1001, data: ['https://lic/x?token=1', 403] }] });
+    expect(e).toMatchObject({ code: 'drm-license-error', details: { httpStatus: 403 } });
+  });
+
   it('subtitle and cancellation errors are never fatal', () => {
     expect(fromShakaError({ category: 2, code: 2000, severity: 2 }).fatal).toBe(false);
     expect(fromShakaError({ category: 7, code: 7000, severity: 2 }).fatal).toBe(false);

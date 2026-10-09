@@ -162,7 +162,10 @@ export function fromShakaError(error: unknown, fatalHint?: boolean): PlayerError
   const code = e?.code ?? 0;
   const critical = fatalHint ?? e?.severity === 2;
   const details = { shakaCategory: category, shakaCode: code, shakaSeverity: e?.severity ?? null };
-  const httpStatus = code === 1001 && typeof e?.data?.[1] === 'number' ? (e.data[1] as number) : null;
+  // BAD_HTTP_STATUS carries the status in data[1]; a failed license request
+  // (6007) wraps that network error in data[0].
+  const inner = code === 6007 ? (e?.data?.[0] as { code?: number; data?: unknown[] } | undefined) : e;
+  const httpStatus = inner?.code === 1001 && typeof inner.data?.[1] === 'number' ? (inner.data[1] as number) : null;
   const base = { fatal: critical, details: { ...details, httpStatus }, cause: error };
   switch (category) {
     case 1: // NETWORK

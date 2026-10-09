@@ -21,7 +21,7 @@ import type { FullscreenController, PlayerRef } from '../types/ref.js';
 import type { CapabilityStatus, LiveState, PlayerCapabilities, PlayerState, PlayerStats, PlayerStatus, TimeRange } from '../types/state.js';
 import type { AudioTrack, QualitySelection, QualityTrack, SubtitleTrackInfo } from '../types/tracks.js';
 import { ArtplayerAdapter } from '../ui/artplayer-adapter.js';
-import { format, languageName, resolveTranslations, type Translations } from '../ui/i18n.js';
+import { languageName, resolveTranslations, type Translations } from '../ui/i18n.js';
 import { PlayerLayers } from '../ui/layers.js';
 import { NativeUiAdapter } from '../ui/native-ui.js';
 import type { MenuModel, UiActions, UiAdapter, UiConfig } from '../ui/ui-adapter.js';
@@ -31,6 +31,14 @@ import { clamp, hashString, semanticEqual } from '../utils/equal.js';
 import { resolveOptions, type OptionIssue, type ResolvedOptions } from './options.js';
 import { SessionClock } from './session-clock.js';
 import { engineMimeType, normalizeSource, type NormalizedSource, type NormalizedVariant } from './source.js';
+import {
+  initialVariantId,
+  ProgressiveQualityState,
+  progressiveQualities,
+  qualityMenuSection,
+  qualityRequestError,
+  selectionFor as qualitySelection,
+} from '../quality/quality-manager.js';
 
 const NATIVE_PLAY = typeof HTMLMediaElement !== 'undefined' ? HTMLMediaElement.prototype.play : undefined;
 const NATIVE_PAUSE = typeof HTMLMediaElement !== 'undefined' ? HTMLMediaElement.prototype.pause : undefined;
@@ -112,10 +120,8 @@ export class PlayerController {
   private sessionSeq = 0;
   private loadId = 0;
   private loadAbort: AbortController | null = null;
-  private currentVariantId: string | null = null;
-  private qualitySwitchGen = 0;
-  /** Position a transport switch is restoring to; reused by overlapping switches (last wins). */
-  private inFlightPosition: number | null = null;
+  /** Selected progressive variant and switch sequencing (last selection wins). */
+  private readonly progressive = new ProgressiveQualityState();
   private breakStartWaiters = new Set<() => void>();
   private breakSnapshot: BreakSnapshot | null = null;
   /** Non-initial transport load in progress: element play/pause/seek events it causes are not re-emitted. */
@@ -551,7 +557,6 @@ export class PlayerController {
     };
     this.session = session;
     this.breakSnapshot = null;
-    this.inFlightPosition = null;
     this.breakStartWaiters.clear();
     if (previous?.attachedBlob) {
       // Released after the engine detaches it (below).
@@ -567,8 +572,8 @@ export class PlayerController {
     this.lastLiveEmit = null;
     this.state.live = { isLive: false, atLiveEdge: false, seekableRange: null, behindLiveEdge: null, latency: null, targetLatency: null };
     this.state.intendedPlaying = this.opts.autoplay.enabled;
-    this.currentVariantId = source.type === 'mp4' ? this.initialVariantId(source.variants) : null;
-    this.state.quality.selected = source.type === 'mp4' ? this.currentVariantId : null;
+    this.progressive.reset(source.type === 'mp4' ? this.pickInitialVariant(source.variants) : null);
+    this.state.quality.selected = this.progressive.current;
     this.subtitles?.resetSelection();
     this.ads?.newSession();
     if (source.type === 'mp4' && this.opts.drm) {
@@ -587,19 +592,9 @@ export class PlayerController {
     await this.loadTransport(session, 'initial', null);
   }
 
-  private initialVariantId(variants: NormalizedVariant[]): string {
-    const requested = this.opts.quality ?? this.opts.defaultQuality;
-    if (requested && requested !== 'auto' && variants.some((v) => v.id === requested)) return requested;
-    // Without a preference: the largest variant not exceeding the rendered
-    // height × devicePixelRatio, else the smallest (no runtime switching).
-    const withHeight = variants.filter((v) => v.height !== null);
-    if (withHeight.length === variants.length && variants.length > 1) {
-      const target = Math.max(1, this.root.clientHeight || 360) * (window.devicePixelRatio || 1);
-      const sorted = [...withHeight].sort((a, b) => (a.height ?? 0) - (b.height ?? 0));
-      const fit = sorted.filter((v) => (v.height ?? 0) <= target).pop() ?? sorted[0]!;
-      return fit.id;
-    }
-    return variants[0]!.id;
+  private pickInitialVariant(variants: NormalizedVariant[]): string {
+    const targetHeight = Math.max(1, this.root.clientHeight || 360) * (window.devicePixelRatio || 1);
+    return initialVariantId(variants, this.opts.quality ?? this.opts.defaultQuality, targetHeight);
   }
 
   private attachEngine(kind: 'native' | 'shaka'): void {
@@ -673,7 +668,7 @@ export class PlayerController {
   private transportInput(session: ContentSession): string | Blob | null {
     const source = session.source;
     if (source.type === 'mp4') {
-      const variant = source.variants.find((v) => v.id === this.currentVariantId) ?? source.variants[0];
+      const variant = source.variants.find((v) => v.id === this.progressive.current) ?? source.variants[0];
       return variant?.input ?? null;
     }
     return source.input;
@@ -698,7 +693,7 @@ export class PlayerController {
     this.emit('loadStart', { reason, sourceType: session.source.type });
     const previousBlob = session.attachedBlob;
     const url = typeof input === 'string' ? input : this.blobs.acquire(input, 'content');
-    const variant = session.source.type === 'mp4' ? session.source.variants.find((v) => v.id === this.currentVariantId) : undefined;
+    const variant = session.source.type === 'mp4' ? session.source.variants.find((v) => v.id === this.progressive.current) : undefined;
     const audioPref = this.opts.audioTrack ? null : this.opts.defaultAudioLanguage;
     try {
       await engine.load(
@@ -780,15 +775,15 @@ export class PlayerController {
     if (!session || !this.engine) return;
     const live = session.kind === 'live';
     const wasAtEdge = this.state.live.atLiveEdge;
-    const snapshotTime = this.inFlightPosition ?? (this.breakSnapshot ? this.breakSnapshot.position : this.video.currentTime);
+    const snapshotTime = this.progressive.inFlightPosition ?? (this.breakSnapshot ? this.breakSnapshot.position : this.video.currentTime);
     let startTime: number | null = explicitTime ?? null;
     if (explicitTime === undefined) {
       if (!live) startTime = session.contentStarted || snapshotTime > 0 ? snapshotTime : null;
       else startTime = wasAtEdge || !session.contentStarted ? null : snapshotTime;
     }
-    if (session.source.type === 'mp4' && !session.source.variants.some((v) => v.id === this.currentVariantId)) {
-      this.currentVariantId = this.initialVariantId(session.source.variants);
-      this.state.quality.selected = this.currentVariantId;
+    if (session.source.type === 'mp4' && !session.source.variants.some((v) => v.id === this.progressive.current)) {
+      this.progressive.set(this.pickInitialVariant(session.source.variants));
+      this.state.quality.selected = this.progressive.current;
     }
     if (this.engine.kind !== (session.source.type === 'mp4' ? 'native' : 'shaka')) {
       await this.detachEngine();
@@ -1504,19 +1499,7 @@ export class PlayerController {
   private qualityList(): QualityTrack[] {
     const session = this.session;
     if (!session) return [];
-    if (session.source.type === 'mp4') {
-      if (session.source.variants.length < 2) return [];
-      return session.source.variants.map((v) => ({
-        id: v.id,
-        label: v.label,
-        width: v.width,
-        height: v.height,
-        bitrate: v.bitrate,
-        codecs: null,
-        frameRate: null,
-        kind: 'progressive' as const,
-      }));
-    }
+    if (session.source.type === 'mp4') return progressiveQualities(session.source.variants);
     return this.engine?.getQualities() ?? [];
   }
 
@@ -1525,7 +1508,7 @@ export class PlayerController {
     if (!session || this.state.status !== 'ready') return null;
     if (session.source.type === 'mp4') {
       const list = this.qualityList();
-      return list.find((q) => q.id === this.currentVariantId) ?? null;
+      return list.find((q) => q.id === this.progressive.current) ?? null;
     }
     return this.engine?.getEffectiveQuality() ?? null;
   }
@@ -1577,19 +1560,7 @@ export class PlayerController {
   private menuModel(): MenuModel {
     const t = this.t;
     const s = this.state;
-    const quality = s.quality;
-    let qualitySection: MenuModel['quality'] = null;
-    if (quality.available.length > 1 || (quality.autoAvailable && quality.available.length > 0)) {
-      const items = quality.available.map((q) => ({ value: q.id, label: q.label, checked: quality.selected === q.id }));
-      if (quality.autoAvailable) items.unshift({ value: 'auto', label: t.auto, checked: quality.selected === 'auto' });
-      const current =
-        quality.selected === 'auto'
-          ? quality.effective
-            ? format(t.autoWithEffective, { quality: quality.effective.label })
-            : t.auto
-          : quality.available.find((q) => q.id === quality.selected)?.label ?? '';
-      qualitySection = { items, current };
-    }
+    const qualitySection = qualityMenuSection(s.quality, t);
     const audio = s.audio.available.length > 1
       ? {
           items: s.audio.available.map((a) => ({ value: a.id, label: a.label || languageName(a.language, this.opts.locale, t.unknownLanguage), checked: a.active })),
@@ -1616,11 +1587,8 @@ export class PlayerController {
 
   async requestQuality(id: 'auto' | string): Promise<void> {
     this.assertUsable();
-    const available = this.qualityList();
-    const adaptive = this.state.quality.autoAvailable;
-    if (id === 'auto' ? !adaptive : !available.some((q) => q.id === id)) {
-      throw playerError('unsupported-operation', 'unsupported', { message: id === 'auto' ? 'Auto quality is only available for adaptive (HLS/DASH) sources.' : 'Unknown quality id.' });
-    }
+    const invalid = qualityRequestError(id, this.qualityList(), this.state.quality.autoAvailable);
+    if (invalid) throw playerError('unsupported-operation', 'unsupported', { message: invalid });
     if (this.opts.quality !== undefined) {
       // Controlled: request only; the host applies it by updating `quality`.
       this.emit('qualityChange', this.selectionFor(id));
@@ -1631,7 +1599,7 @@ export class PlayerController {
   }
 
   private selectionFor(id: string): QualitySelection {
-    return { id, track: id === 'auto' ? null : this.qualityList().find((q) => q.id === id) ?? null };
+    return qualitySelection(id, this.qualityList());
   }
 
   private async applyQuality(id: string): Promise<void> {
@@ -1650,7 +1618,7 @@ export class PlayerController {
       this.refreshTracks();
       return;
     }
-    if (id === this.currentVariantId) return;
+    if (id === this.progressive.current) return;
     await this.switchProgressiveVariant(session, id);
   }
 
@@ -1660,29 +1628,25 @@ export class PlayerController {
    * selection wins; on failure the previous variant is restored.
    */
   private async switchProgressiveVariant(session: ContentSession, id: string): Promise<void> {
-    const gen = ++this.qualitySwitchGen;
-    const previous = this.currentVariantId;
-    // While an earlier switch is still loading, the element's currentTime is not
-    // meaningful; keep restoring to the position captured by the first switch.
-    const time = this.inFlightPosition ?? (this.breakSnapshot ? this.breakSnapshot.position : this.video.currentTime);
-    this.inFlightPosition = time;
     const wasPlaying = this.state.intendedPlaying && !this.linearAdActive();
-    this.currentVariantId = id;
+    const change = this.progressive.begin(id, this.breakSnapshot ? this.breakSnapshot.position : this.video.currentTime);
+    const { previous, position: time } = change;
     this.state.quality.selected = id;
     this.emit('qualityChange', this.selectionFor(id));
     const ok = await this.loadTransportForQuality(session, time);
-    if (gen !== this.qualitySwitchGen || this.session !== session) return;
-    this.inFlightPosition = null;
+    if (!this.progressive.isLatest(change) || this.session !== session) return;
+    this.progressive.settle(change);
     if (!ok && this.state.status === 'error' && previous && previous !== id) {
       // Keep a usable source: return to the previous variant at the same time.
       const failure = this.state.error;
-      this.currentVariantId = previous;
+      const fallback = this.progressive.begin(previous, time);
       this.state.quality.selected = previous;
       this.state.error = null;
       this.layers?.clearError();
       this.setStatus('ready');
       const restored = await this.loadTransportForQuality(session, time);
-      if (gen !== this.qualitySwitchGen) return;
+      if (!this.progressive.isLatest(fallback)) return;
+      this.progressive.settle(fallback);
       this.emit('qualityChange', this.selectionFor(previous));
       if (failure) this.reportNonFatal(new PlayerErrorImpl({ ...failure, fatal: false, details: { ...failure.details, qualityFallback: previous } } as ConstructorParameters<typeof PlayerErrorImpl>[0]));
       if (restored && wasPlaying && this.state.intendedPlaying) void this.playElement('restore');

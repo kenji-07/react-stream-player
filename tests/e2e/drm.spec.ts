@@ -86,6 +86,7 @@ test('a rejected license request becomes a fatal, readable DRM error without lea
   });
   expect(err.payload.category).toBe('drm');
   expect(err.payload.code).toBe('drm-license-error');
+  expect(err.payload.details.httpStatus).toBe(401);
   expect(JSON.stringify(err.payload)).not.toContain('SECRET123');
   await expect(page.locator('.rsp-error')).toBeVisible();
   await expect(page.locator('.rsp-error')).not.toContainText('http');

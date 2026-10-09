@@ -15,7 +15,7 @@ export class NativeCueRenderer {
   private readonly box: HTMLDivElement;
   private readonly onCueChange = () => this.render();
 
-  constructor(private readonly layer: HTMLElement) {
+  constructor(layer: HTMLElement) {
     this.box = document.createElement('div');
     this.box.className = 'rsp-cues';
     this.box.setAttribute('aria-live', 'off');

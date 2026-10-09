@@ -1,0 +1,123 @@
+{
+  "date": "2026-10-09T17:36:47.348Z",
+  "node": "v22.22.0",
+  "steps": {
+    "pack": {
+      "ok": true,
+      "tarball": "react-stream-player-0.1.0.tgz",
+      "packedSize": 289488,
+      "unpackedSize": 1196982,
+      "fileCount": 156
+    },
+    "server": {
+      "ok": true,
+      "react": "19.0.0",
+      "exports": [
+        "DEFAULT_PLAYBACK_RATES",
+        "DEFAULT_SUBTITLE_STYLE",
+        "DEFAULT_VOLUME",
+        "Player",
+        "PlayerErrorBoundary",
+        "isPlayerError"
+      ],
+      "coreExports": [
+        "DEFAULT_PLAYBACK_RATES",
+        "DEFAULT_SUBTITLE_STYLE",
+        "DEFAULT_VOLUME",
+        "createPlayer",
+        "isPlayerError"
+      ],
+      "staticBareImports": [
+        "react",
+        "react/jsx-runtime"
+      ],
+      "ssrHtml": "<div class=\"rsp-root\" style=\"aspect-ratio:9 / 16\" data-layout=\"reel\" data-ui=\"artplayer\"></div>"
+    },
+    "vite": {
+      "ok": true,
+      "versions": {
+        "react": "19.0.0",
+        "vite": "8.3.4",
+        "@vitejs/plugin-react": "6.1.2",
+        "typescript": "~6.0.3"
+      },
+      "chunks": [
+        {
+          "file": "shaka-player.compiled-DziEfgWh.js",
+          "bytes": 819325,
+          "gzip": 267710,
+          "shaka": true,
+          "artplayer": false,
+          "entry": false
+        },
+        {
+          "file": "index-D5hGKMe_.js",
+          "bytes": 349427,
+          "gzip": 105603,
+          "shaka": false,
+          "artplayer": false,
+          "entry": true
+        },
+        {
+          "file": "artplayer-DEelhHSF.js",
+          "bytes": 140469,
+          "gzip": 36570,
+          "shaka": false,
+          "artplayer": true,
+          "entry": false
+        }
+      ],
+      "runtime": {
+        "native": {
+          "shakaLoaded": false,
+          "artplayerLoaded": false,
+          "scripts": 1,
+          "videos": 1,
+          "consoleErrors": []
+        },
+        "mp4": {
+          "shakaLoaded": false,
+          "artplayerLoaded": true,
+          "scripts": 2,
+          "videos": 1,
+          "consoleErrors": []
+        },
+        "hls": {
+          "shakaLoaded": true,
+          "artplayerLoaded": true,
+          "scripts": 3,
+          "videos": 1,
+          "consoleErrors": []
+        }
+      }
+    },
+    "next": {
+      "ok": true,
+      "versions": {
+        "next": "16.4.0",
+        "react": "19.3.0"
+      },
+      "routeTable": [
+        "Route (app)",
+        "┌ ○ /",
+        "├ ○ /_not-found",
+        "└ ƒ /api/license-token",
+        "○  (Static)   prerendered as static content",
+        "ƒ  (Dynamic)  server-rendered on demand"
+      ],
+      "runtime": {
+        "mp4": {
+          "shakaLoaded": false,
+          "artplayerLoaded": true,
+          "videos": 1
+        },
+        "hls": {
+          "shakaLoaded": true,
+          "videos": 1
+        },
+        "consoleErrors": []
+      }
+    }
+  },
+  "ok": true
+}

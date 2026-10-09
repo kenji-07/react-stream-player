@@ -1,0 +1,17 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>react-stream-player custom receiver</title>
+    <!-- Google Cast Application Framework (CAF) receiver SDK v3. -->
+    <script src="https://www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js"></script>
+    <style>
+      body { margin: 0; background: #000; }
+      cast-media-player { --theme-hue: 210; }
+    </style>
+  </head>
+  <body>
+    <cast-media-player></cast-media-player>
+    <script type="module" src="./receiver.js"></script>
+  </body>
+</html>
