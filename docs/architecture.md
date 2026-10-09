@@ -195,7 +195,7 @@ the integration prototype and e2e tests.
 - Shaka, Artplayer, IMA and Cast are loaded with dynamic `import()` or
   script injection only when needed.
 - Measured in a Vite 8 consumer (`npm run consumers`, gzip):
-  - entry (React + package): 103 KiB;
+  - entry (React + package): 104 KiB;
   - Shaka chunk: 261 KiB, loaded only for HLS/DASH;
   - Artplayer chunk: 36 KiB, loaded only for `ui="artplayer"`.
 - In the browser, native MP4 never requested the Shaka chunk. The Next.js 16

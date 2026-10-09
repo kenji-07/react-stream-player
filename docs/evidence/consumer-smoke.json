@@ -1,13 +1,13 @@
 {
-  "date": "2026-10-09T17:36:47.348Z",
+  "date": "2026-10-09T17:56:50.998Z",
   "node": "v22.22.0",
   "steps": {
     "pack": {
       "ok": true,
       "tarball": "react-stream-player-0.1.0.tgz",
-      "packedSize": 289488,
-      "unpackedSize": 1196982,
-      "fileCount": 156
+      "packedSize": 297956,
+      "unpackedSize": 1225232,
+      "fileCount": 159
     },
     "server": {
       "ok": true,
@@ -43,7 +43,7 @@
       },
       "chunks": [
         {
-          "file": "shaka-player.compiled-DziEfgWh.js",
+          "file": "shaka-player.compiled-BpolRBeq.js",
           "bytes": 819325,
           "gzip": 267710,
           "shaka": true,
@@ -51,9 +51,9 @@
           "entry": false
         },
         {
-          "file": "index-D5hGKMe_.js",
-          "bytes": 349427,
-          "gzip": 105603,
+          "file": "index-DQ27f5le.js",
+          "bytes": 352313,
+          "gzip": 106412,
           "shaka": false,
           "artplayer": false,
           "entry": true

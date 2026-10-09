@@ -34,7 +34,7 @@ noted.
 | `"use client"` boundary on the React entry only; no `ssr:false` needed in Next.js | required-v1 | tested | `scripts/build.mjs` assertions; `tests/unit/static-safety.test.ts`; Next.js 16 consumer |
 | Safe server import and `renderToString` (no DOM globals, no globals defined) | required-v1 | tested | `tests/unit/ssr.test.tsx`; consumer server step (React 19.0.0) |
 | Strict TypeScript types; README samples type-checked incl. negative cases | required-v1 | tested | `tests/types/readme-examples.test-d.tsx`; strict consumer `tsc` with `exactOptionalPropertyTypes` and `skipLibCheck: false` on our declarations |
-| Lazy Shaka/Artplayer/IMA/Cast; native MP4 never loads Shaka | required-v1 | tested | `playback.spec.ts` "does not load Shaka"; Vite and Next consumers measure chunks and network (entry 103 KiB gz; Shaka 261 KiB gz lazy; Artplayer 36 KiB gz lazy) |
+| Lazy Shaka/Artplayer/IMA/Cast; native MP4 never loads Shaka | required-v1 | tested | `playback.spec.ts` "does not load Shaka"; Vite and Next consumers measure chunks and network (entry 104 KiB gz; Shaka 261 KiB gz lazy; Artplayer 36 KiB gz lazy) |
 | Packed artifact in clean React (Vite) and Next.js consumers | required-v1 | tested | `npm run consumers` → `docs/evidence/consumer-smoke.json` |
 | Framework-independent `createPlayer` | optional-v1 | tested (types, SSR guard); browser use via the example only | `tests/unit/ssr.test.tsx`; `examples/nextjs/components/examples/CoreApi.tsx` |
 
