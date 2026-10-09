@@ -91,7 +91,7 @@ test('IMA midroll: content pauses at the cue and is restored exactly once; manag
   const during = await videoInfo(page);
   expect(during.paused).toBe(true);
   await waitForEvent(page, 'adBreakEnd', 10_000);
-  await page.waitForFunction(() => !(document.querySelector('#app video.art-video') as HTMLVideoElement).paused);
+  await page.waitForFunction(() => !(document.querySelector('#app video.rsp-video') as HTMLVideoElement).paused);
   expect(Math.abs((await videoInfo(page)).time - during.time)).toBeLessThan(0.6);
   await waitForEvent(page, 'adBreakEnd', 15_000, 2);
   expect((await events(page, 'adBreakStart')).map((e) => e.payload.placement)).toEqual(['midroll', 'midroll']);

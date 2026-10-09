@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { BASE, events, mount, OTHER, openHarness, resetLog, selectInSettings, serverLog, state, waitForReady, waitForTime } from './helpers';
+import { BASE, events, mount, OTHER, openHarness, resetLog, selectInSettings, serverLog, state, videoInfo, waitForReady, waitForTime } from './helpers';
 
 test.beforeEach(async ({ page }) => {
   await openHarness(page);
@@ -103,29 +103,53 @@ test('hostile quality/subtitle labels stay plain text in the prebuilt menus', as
     title: `${evil}Title`,
   });
   await waitForReady(page);
-  await page.locator('.art-control-setting').click();
-  await page.locator('.art-setting-panel.art-current .art-setting-item-left-text').getByText('Quality', { exact: true }).click();
-  await expect(page.locator('.art-setting-panel.art-current').getByText(`${evil}A`)).toBeVisible();
-  await page.locator('.art-setting-panel.art-current .art-setting-item-back').click();
+  await page.locator('#app .rsp-settings-button').click();
+  await page.locator('#app .rsp-settings-menu .rsp-menu-entry .rsp-menu-label').getByText('Quality', { exact: true }).click();
+  await expect(page.locator('#app .rsp-settings-menu').getByText(`${evil}A`)).toBeVisible();
+  await page.locator('#app .rsp-settings-menu .rsp-menu-back').click();
   await selectInSettings(page, 'Subtitles', `${evil}Sub`);
-  expect(await page.locator('.art-video-player img').count()).toBe(0);
+  // The label is now the root entry's current value too: still plain text.
+  await page.locator('#app .rsp-settings-button').click();
+  await expect(page.locator('#app .rsp-settings-menu .rsp-menu-value').getByText(`${evil}Sub`)).toBeVisible();
+  await page.keyboard.press('Escape');
+  expect(await page.locator('#app .rsp-ui img').count()).toBe(0);
   expect(await page.evaluate(() => document.querySelector('#app .rsp-root')!.getAttribute('aria-label'))).toBe(`${evil}Title`);
   expect(await page.evaluate(() => (window as unknown as { __xss?: number }).__xss)).toBeUndefined();
 });
 
-test('context menu: no vendor version link or source info; disabled menu falls back to the browser menu', async ({ page }) => {
-  await mount(page, { source: { src: `${BASE}/fixtures/mp4/vod-216p.mp4?sig=SIGNED`, type: 'mp4' } });
+test('context menu: package actions only (no links, no source info); keyboard operable; disabled menu falls back to the browser menu', async ({ page }) => {
+  await mount(page, { source: { src: `${BASE}/fixtures/mp4/vod-216p.mp4?sig=SIGNED`, type: 'mp4' }, subtitles: [{ id: 's', src: `${BASE}/fixtures/subs/en.vtt`, label: 'English', language: 'en' }] });
   await waitForReady(page);
-  expect(await page.locator('a[href*="artplayer.org"]').count()).toBe(0);
-  expect(await page.locator('.art-contextmenu-info, .art-contextmenu-version').count()).toBe(0);
+  expect(await page.locator('#app a').count()).toBe(0);
   expect(await page.evaluate(() => document.querySelector('#app .rsp-root')!.textContent ?? '')).not.toContain('SIGNED');
   const box = (await page.locator('#app .rsp-root').boundingBox())!;
   await page.mouse.click(box.x + box.width / 2, box.y + box.height / 3, { button: 'right' });
-  await expect(page.locator('.art-contextmenus')).toBeVisible();
-  const items = await page.locator('.art-contextmenu').allTextContents();
-  expect(items.join('|')).toContain('Speed:');
-  expect(items.join('|')).toContain('Subtitles');
+  const menu = page.locator('#app .rsp-context-menu');
+  await expect(menu).toBeVisible();
+  await expect(menu).toHaveAttribute('role', 'menu');
+  expect(await menu.locator('[role="group"]').getAttribute('aria-label')).toBe('Speed');
+  const items = await menu.locator('.rsp-context-item').allTextContents();
+  expect(items).toEqual(['0.5×', '0.75×', 'Normal', '1.25×', '1.5×', '2×', 'Subtitles', 'Fullscreen', 'Loop', 'Copy diagnostics']);
+  expect(await menu.locator('a, img').count()).toBe(0);
+  // Focus starts on the first item; arrows move; Enter activates; focus is not lost.
+  expect(await page.evaluate(() => document.activeElement?.textContent)).toBe('0.5×');
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('Enter');
+  await expect(menu).toBeHidden();
+  expect((await videoInfo(page)).rate).toBe(0.75);
+  // Keyboard opening (Shift+F10) from the focused player; Escape closes and restores focus.
+  await page.locator('#app .rsp-root').focus();
+  await page.keyboard.press('Shift+F10');
+  await expect(menu).toBeVisible();
+  await expect(menu.locator('.rsp-context-item[aria-checked="true"]', { hasText: '0.75×' })).toHaveCount(1);
+  await page.keyboard.press('Escape');
+  await expect(menu).toBeHidden();
+  await expect(page.locator('#app .rsp-root')).toBeFocused();
+  // A click outside closes it.
+  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 3, { button: 'right' });
+  await expect(menu).toBeVisible();
   await page.mouse.click(5, 5);
+  await expect(menu).toBeHidden();
   await page.evaluate(() => window.__h.update({ contextMenu: false }));
   const prevented = await page.evaluate(() => {
     const video = document.querySelector('#app video')!;
@@ -156,8 +180,10 @@ test('nothing is written to browser storage (no tokens, positions or vendor sett
     await ref.seekTo(5);
     await ref.setQuality('b');
   });
-  await page.locator('.art-control-setting').click();
+  await page.locator('#app .rsp-settings-button').click();
   await page.mouse.click(5, 5);
+  await page.locator('#app .rsp-volume').focus();
+  await page.keyboard.press('ArrowUp');
   await page.waitForTimeout(500);
   const storage = await page.evaluate(() => ({ local: localStorage.length, session: sessionStorage.length, cookie: document.cookie }));
   expect(storage).toEqual({ local: 0, session: 0, cookie: '' });

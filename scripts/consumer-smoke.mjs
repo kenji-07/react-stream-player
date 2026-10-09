@@ -4,8 +4,8 @@
 //   1. tarball contents (exports, types, CSS, maps, notices; no src/tests)
 //   2. server import + renderToString in plain Node (React 19.0.0, the minimum peer)
 //   3. Vite + React 19.0.0 app: strict tsc against the installed types, build,
-//      measured chunks (Shaka/Artplayer must be lazy), browser playback, and a
-//      check that native MP4 never loads the Shaka chunk
+//      measured chunks (Shaka must be lazy), browser playback through the
+//      package's own controls, and a check that native MP4 never loads Shaka
 //   4. Next.js 16 App Router app (examples/nextjs): next build, next start,
 //      SSR HTML, hydration without errors, playback, Shaka loaded only for HLS
 //
@@ -27,9 +27,8 @@ const keep = process.argv.includes('--keep');
 const results = { date: new Date().toISOString(), node: process.version, steps: {} };
 // Strings that occur only in the vendor libraries (never in this package's
 // own dist, which references e.g. `shaka.Player` in its engine adapter):
-// Shaka's HLS parser tag and Artplayer's storage key. Minifiers keep both.
+// Shaka's HLS parser tag. Minifiers keep it.
 const SHAKA_SIGNATURE = /EXT-X-STREAM-INF/;
-const ARTPLAYER_SIGNATURE = /artplayer_settings/;
 
 function log(...args) {
   console.log('[consumers]', ...args);
@@ -51,6 +50,23 @@ function writeJson(file, value) {
 
 function gzipSize(file) {
   return zlib.gzipSync(fs.readFileSync(file)).length;
+}
+
+/** The package's own controls are mounted (and the browser's are not). */
+function controlsInfo(page) {
+  return page.evaluate(() => {
+    const visible = (selector) => {
+      const el = document.querySelector(selector);
+      return Boolean(el && !el.closest('[hidden]'));
+    };
+    return {
+      uis: document.querySelectorAll('.rsp-ui').length,
+      nativeControls: [...document.querySelectorAll('video')].some((v) => v.controls),
+      play: visible('.rsp-controls .rsp-play'),
+      progress: visible('.rsp-controls .rsp-progress'),
+      settings: visible('.rsp-controls .rsp-settings-button'),
+    };
+  });
 }
 
 function copyFixtures(to) {
@@ -173,7 +189,7 @@ console.log(JSON.stringify({ exports: Object.keys(pkg).sort(), coreExports: Obje
   const output = JSON.parse(run(process.execPath, ['check.mjs'], dir).trim().split('\n').at(-1));
   assert(output.css, 'styles.css export does not resolve to dist/styles.css');
 
-  // Static import graph of the entry: no static path to Shaka/Artplayer/IMA.
+  // Static import graph of the entry: no static path to Shaka/IMA.
   const distDir = path.join(dir, 'node_modules/react-stream-player/dist');
   const seen = new Set();
   const bare = new Set();
@@ -188,7 +204,7 @@ console.log(JSON.stringify({ exports: Object.keys(pkg).sort(), coreExports: Obje
     }
   };
   visit(path.join(distDir, 'index.js'));
-  const staticVendors = [...bare].filter((s) => /shaka|artplayer/.test(s));
+  const staticVendors = [...bare].filter((s) => /shaka/.test(s));
   assert(staticVendors.length === 0, `entry statically imports ${staticVendors.join(', ')}`);
   results.steps.server = { ok: true, react: '19.0.0', exports: output.exports, coreExports: output.coreExports, staticBareImports: [...bare].sort(), ssrHtml: output.html };
   log('server import OK; static bare imports:', [...bare].join(', '));
@@ -236,7 +252,7 @@ const example = new URLSearchParams(location.search).get('example') ?? 'mp4';
 const sources: Record<string, PlayerSource> = {
   mp4: { id: 'mp4', type: 'mp4', variants: [{ id: '216p', label: '216p', height: 216, src: '/media/mp4/vod-216p.mp4' }, { id: '360p', label: '360p', height: 360, src: '/media/mp4/vod-360p.mp4' }] },
   hls: { src: '/media/hls/master.m3u8', type: 'hls' },
-  native: { src: '/media/mp4/vod-216p.mp4', type: 'mp4' },
+  single: { src: '/media/mp4/vod-216p.mp4', type: 'mp4' },
 };
 
 function App() {
@@ -245,7 +261,6 @@ function App() {
     <Player
       ref={ref}
       source={sources[example] ?? null}
-      ui={example === 'native' ? 'native' : 'artplayer'}
       autoplay={{ enabled: true, mutedFallback: true }}
       subtitles={[{ id: 'en', src: '/media/subs/en.vtt', label: 'English', language: 'en' }]}
       onReady={(info) => { (window as unknown as { __ready: unknown }).__ready = info; }}
@@ -278,14 +293,12 @@ createRoot(document.getElementById('root')!).render(<StrictMode><App /></StrictM
   assert(entry, 'entry chunk not found');
   const describe = (c) => {
     const text = fs.readFileSync(path.join(assets, c), 'utf8');
-    return { file: c, bytes: Buffer.byteLength(text), gzip: gzipSize(path.join(assets, c)), shaka: SHAKA_SIGNATURE.test(text), artplayer: ARTPLAYER_SIGNATURE.test(text), entry: c === entry };
+    return { file: c, bytes: Buffer.byteLength(text), gzip: gzipSize(path.join(assets, c)), shaka: SHAKA_SIGNATURE.test(text), entry: c === entry };
   };
   const measured = chunks.map(describe).sort((a, b) => b.bytes - a.bytes);
   const entryInfo = measured.find((c) => c.entry);
   assert(!entryInfo.shaka, 'Shaka is in the entry chunk');
-  assert(!entryInfo.artplayer, 'Artplayer is in the entry chunk');
   assert(measured.some((c) => c.shaka && !c.entry), 'no lazy Shaka chunk');
-  assert(measured.some((c) => c.artplayer && !c.entry), 'no lazy Artplayer chunk');
 
   copyFixtures(path.join(dir, 'dist/media'));
   const port = 4190;
@@ -293,21 +306,20 @@ createRoot(document.getElementById('root')!).render(<StrictMode><App /></StrictM
   const browser = await launchBrowser();
   const runtime = {};
   try {
-    for (const example of ['native', 'mp4', 'hls']) {
+    for (const example of ['single', 'mp4', 'hls']) {
       const { page, scripts, errors } = await instrumentedPage(browser);
       await page.goto(`http://127.0.0.1:${port}/?example=${example}`);
       await page.waitForFunction(() => (window).__ready, null, { timeout: 30_000 });
       await waitForPlayback(page, 0.5);
       const shaka = loaded(scripts, SHAKA_SIGNATURE);
-      const artplayer = loaded(scripts, ARTPLAYER_SIGNATURE);
       const videos = await page.evaluate(() => document.querySelectorAll('video').length);
-      runtime[example] = { shakaLoaded: shaka, artplayerLoaded: artplayer, scripts: scripts.size, videos, consoleErrors: errors };
+      const controls = await controlsInfo(page);
+      runtime[example] = { shakaLoaded: shaka, scripts: scripts.size, videos, controls, consoleErrors: errors };
       assert(errors.length === 0, `${example}: console errors ${JSON.stringify(errors)}`);
       assert(videos === 1, `${example}: expected one <video> under StrictMode, found ${videos}`);
+      assert(controls.uis === 1 && !controls.nativeControls && controls.play && controls.progress, `${example}: player controls missing ${JSON.stringify(controls)}`);
       if (example === 'hls') assert(shaka, 'HLS did not load Shaka');
       else assert(!shaka, `${example}: native MP4 loaded the Shaka chunk`);
-      if (example === 'native') assert(!artplayer, 'native UI loaded Artplayer');
-      else assert(artplayer, `${example}: Artplayer UI not loaded`);
       await page.close();
     }
   } finally {
@@ -315,7 +327,7 @@ createRoot(document.getElementById('root')!).render(<StrictMode><App /></StrictM
     server.close();
   }
   results.steps.vite = { ok: true, versions: { react: '19.0.0', vite: '8.3.4', '@vitejs/plugin-react': '6.1.2', typescript: '~6.0.3' }, chunks: measured, runtime };
-  log('vite OK:', measured.map((c) => `${c.file} ${(c.gzip / 1024).toFixed(1)} KiB gz${c.entry ? ' [entry]' : ''}${c.shaka ? ' [shaka]' : ''}${c.artplayer ? ' [artplayer]' : ''}`).join(' | '));
+  log('vite OK:', measured.map((c) => `${c.file} ${(c.gzip / 1024).toFixed(1)} KiB gz${c.entry ? ' [entry]' : ''}${c.shaka ? ' [shaka]' : ''}`).join(' | '));
 }
 
 // ---------------------------------------------------------------- 4. Next.js
@@ -379,20 +391,20 @@ async function next(tarball) {
   try {
     const { page, scripts, errors } = await instrumentedPage(browser);
     await page.goto(base);
-    // Default example: MP4 qualities (Artplayer UI, native engine).
-    await page.waitForSelector('.art-video-player', { timeout: 30_000 });
-    await page.locator('.art-video-player .art-state').click();
+    // Default example: MP4 qualities (package controls, native engine).
+    await page.waitForSelector('.rsp-ui .rsp-big-play', { timeout: 30_000 });
+    await page.locator('.rsp-ui .rsp-big-play').click();
     await waitForPlayback(page, 0.5);
-    runtime.mp4 = { shakaLoaded: loaded(scripts, SHAKA_SIGNATURE), artplayerLoaded: loaded(scripts, ARTPLAYER_SIGNATURE), videos: await page.evaluate(() => document.querySelectorAll('video').length) };
+    runtime.mp4 = { shakaLoaded: loaded(scripts, SHAKA_SIGNATURE), videos: await page.evaluate(() => document.querySelectorAll('video').length), controls: await controlsInfo(page) };
     assert(!runtime.mp4.shakaLoaded, 'Next: native MP4 example loaded Shaka');
-    assert(runtime.mp4.artplayerLoaded, 'Next: Artplayer UI not loaded');
     assert(runtime.mp4.videos === 1, `Next: expected one <video> under reactStrictMode, found ${runtime.mp4.videos}`);
+    assert(runtime.mp4.controls.uis === 1 && runtime.mp4.controls.play && runtime.mp4.controls.settings, `Next: player controls missing ${JSON.stringify(runtime.mp4.controls)}`);
     // Switch to HLS: Shaka is loaded on demand; the previous player is destroyed.
     await page.getByRole('button', { name: 'HLS VOD' }).click();
     await page.waitForFunction(() => document.querySelector('h2')?.textContent === 'HLS VOD');
-    await page.waitForSelector('.art-video-player', { timeout: 30_000 });
+    await page.waitForSelector('.rsp-ui .rsp-big-play', { timeout: 30_000 });
     await page.waitForTimeout(500);
-    await page.locator('.art-video-player .art-state').click();
+    await page.locator('.rsp-ui .rsp-big-play').click();
     await waitForPlayback(page, 0.5);
     runtime.hls = { shakaLoaded: loaded(scripts, SHAKA_SIGNATURE), videos: await page.evaluate(() => document.querySelectorAll('video').length) };
     assert(runtime.hls.shakaLoaded, 'Next: HLS example did not load Shaka');

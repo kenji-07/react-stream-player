@@ -17,7 +17,8 @@ test.describe('errors and retry', () => {
     const text = (await panel.textContent()) ?? '';
     expect(text).not.toContain('http');
     expect(text).not.toContain('SECRET123');
-    expect(await page.evaluate(() => document.querySelector('.art-video-player')!.classList.contains('art-loading-show'))).toBe(false);
+    await expect(page.locator('#app .rsp-spinner')).toBeHidden();
+    await expect(page.locator('#app .rsp-big-play')).toBeHidden();
     const err = (await events(page, 'error')).find((e) => e.payload.fatal)!;
     expect(JSON.stringify(err)).not.toContain('SECRET123');
     expect(err.payload.contentSessionId).toBeTruthy();

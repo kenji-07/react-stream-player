@@ -61,7 +61,6 @@ export const DEFAULT_HOTKEYS: Record<string, HotkeyAction> = {
 };
 
 export interface ResolvedOptions {
-  ui: 'artplayer' | 'native';
   layout: 'standard' | 'reel';
   poster: string | null;
   title: string | null;
@@ -366,7 +365,6 @@ export function resolveOptions(options: PlayerOptions): { resolved: ResolvedOpti
   }
 
   const resolved: ResolvedOptions = {
-    ui: options.ui === 'native' ? 'native' : 'artplayer',
     layout,
     poster: typeof options.poster === 'string' && isAllowedResourceUrl(options.poster) ? options.poster : null,
     title: typeof options.title === 'string' ? options.title : null,

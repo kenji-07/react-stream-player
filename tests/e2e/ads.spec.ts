@@ -41,7 +41,11 @@ test('image preroll: content waits, skip becomes available after skipAfter, cont
   await expect(page.locator('.rsp-ad-link')).toHaveAttribute('rel', /noopener/);
   expect((await state(page)).ad.active).toBe(true);
   // Content controls are not operable during the linear ad.
-  await expect(page.locator('.art-bottom')).toBeHidden();
+  await expect(page.locator('#app .rsp-controls')).toBeHidden();
+  await expect(page.locator('#app .rsp-controls')).toHaveAttribute('inert', '');
+  // A right click during the ad gets the browser's own menu, not the player's.
+  await page.locator('#app .rsp-ad-linear').click({ button: 'right', position: { x: 20, y: 20 } });
+  await expect(page.locator('#app .rsp-context-menu')).toBeHidden();
   await expect(skip).toBeEnabled({ timeout: 4000 });
   await skip.click();
   await waitForEvent(page, 'adSkip');
@@ -102,8 +106,8 @@ test('video midroll pauses content, plays in a separate element and restores con
   await page.evaluate(() => window.__h.ref().play());
   await waitForEvent(page, 'adStart', 15_000);
   const during = await page.evaluate(() => ({
-    contentPaused: (document.querySelector('#app video.art-video') as HTMLVideoElement).paused,
-    contentTime: (document.querySelector('#app video.art-video') as HTMLVideoElement).currentTime,
+    contentPaused: (document.querySelector('#app video.rsp-video') as HTMLVideoElement).paused,
+    contentTime: (document.querySelector('#app video.rsp-video') as HTMLVideoElement).currentTime,
     adVideos: document.querySelectorAll('.rsp-ad-media-video').length,
   }));
   expect(during.contentPaused).toBe(true);
@@ -112,7 +116,7 @@ test('video midroll pauses content, plays in a separate element and restores con
   expect(during.adVideos).toBe(1);
   await page.locator('.rsp-ad-skip').click({ timeout: 5000 });
   await waitForEvent(page, 'adBreakEnd');
-  await page.waitForFunction(() => !(document.querySelector('#app video.art-video') as HTMLVideoElement).paused);
+  await page.waitForFunction(() => !(document.querySelector('#app video.rsp-video') as HTMLVideoElement).paused);
   const after = await videoInfo(page);
   expect(Math.abs(after.time - during.contentTime)).toBeLessThan(0.6);
   expect(await page.locator('.rsp-ad-media-video').count()).toBe(0);

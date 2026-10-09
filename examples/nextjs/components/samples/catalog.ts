@@ -213,7 +213,13 @@ function classify(category: string, sample: RawSample, options: Required<Catalog
       notes.push('In-band captions (MPEG-4 Timed Text, SubRip or SSA inside the file) are not exposed by browsers as text tracks: the video plays without them. Provide WebVTT through `subtitles` instead.');
     }
   } else {
-    source = { src: uri, type: protocol };
+    // Adaptive streams fetch the manifest and segments with fetch/XHR, which
+    // needs CORS: manifests on the CORS-less buckets go through the
+    // same-origin rewrite (relative segment URLs follow; absolute ones are
+    // mapped by the example's `network.onRequest`).
+    const src = options.corsUrl(uri);
+    source = { src, type: protocol };
+    if (src !== uri) notes.push('This bucket sends no CORS headers, so the Next.js example loads the manifest and its segments through a same-origin rewrite (see next.config.mjs).');
     if (/\(aac\)|\baudio\b/i.test(sample.name)) {
       notes.push('Audio only: this is a video player, so the picture area stays empty.');
     }

@@ -9,6 +9,12 @@ import data from './samples.json';
 // Classified once per page load; entries (and their configs) are stable
 // objects, so re-rendering the browser never reloads the player.
 const CATALOG = buildCatalog(data as RawCategory[], { corsUrl: sameOrigin });
+/** Absolute segment URLs inside proxied manifests (e.g. DASH BaseURLs) go through the same rewrite. */
+const SAMPLE_NETWORK = {
+  onRequest(request: { uris: string[] }) {
+    request.uris = request.uris.map(sameOrigin);
+  },
+};
 const CATEGORIES = [...new Set(CATALOG.map((entry) => entry.category))];
 const TOTALS = statusCounts(CATALOG);
 const STATUSES = Object.keys(STATUS_LABELS) as SampleStatus[];
@@ -79,6 +85,7 @@ function SampleDetails({ entry }: { entry: SampleEntry }) {
             ref={ref}
             title={entry.name}
             {...entry.config}
+            network={SAMPLE_NETWORK}
             autoplay={{ enabled: true, mutedFallback: true }}
             onReady={(info) => {
               push(`ready: ${info.engine} engine, ${info.sourceType}${info.isLive ? ', live' : ''}${info.duration ? `, ${Math.round(info.duration)} s` : ''}`);

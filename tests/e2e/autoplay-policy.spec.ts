@@ -48,7 +48,7 @@ test('blocked autoplay without muted fallback waits for the viewer and does not 
   expect((await events(page, 'adStart')).length).toBe(0);
   expect((await videoInfo(page)).paused).toBe(true);
   // The viewer presses play (real user activation): the preroll runs first.
-  await page.locator('#app .art-video-player .art-state').click();
+  await page.locator('#app .rsp-big-play').click();
   await waitForEvent(page, 'adStart');
   await waitForEvent(page, 'adBreakEnd');
   await waitForTime(page, 0.3);

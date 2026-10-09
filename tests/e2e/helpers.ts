@@ -69,7 +69,7 @@ export async function videoInfo(page: Page): Promise<{ time: number; paused: boo
       volume: v?.volume ?? -1,
       muted: v?.muted ?? false,
       rate: v?.playbackRate ?? -1,
-      count: document.querySelectorAll('#app video.rsp-video, #app video.art-video').length,
+      count: document.querySelectorAll('#app video').length,
     };
   });
 }
@@ -105,14 +105,23 @@ export const SUBS = (origin = BASE) => [
   { id: 'mn', src: `${origin}/fixtures/subs/mn.vtt`, label: 'Монгол', language: 'mn' },
 ];
 
-/** Opens Artplayer's existing settings panel and chooses an option (proves the UI path). */
+/** Opens the player's settings menu and chooses an option (proves the UI path). */
 export async function selectInSettings(page: Page, menu: string, option: string): Promise<void> {
-  const open = await page.evaluate(() => document.querySelector('.art-video-player')?.classList.contains('art-setting-show'));
-  if (!open) await page.locator('.art-control-setting').first().click();
-  await page.locator('.art-setting-panel.art-current .art-setting-item-left-text').getByText(menu, { exact: true }).first().click();
-  await page
-    .locator('.art-setting-panel.art-current .art-setting-item:not(.art-setting-item-back) .art-setting-item-left-text')
-    .getByText(option, { exact: true })
-    .first()
-    .click();
+  const settings = page.locator('#app .rsp-settings-menu');
+  if (!(await settings.isVisible())) await page.locator('#app .rsp-settings-button').click();
+  if ((await settings.getAttribute('data-view')) !== 'root') await settings.locator('.rsp-menu-back').click();
+  await settings.locator('.rsp-menu-entry .rsp-menu-label').getByText(menu, { exact: true }).click();
+  await settings.locator('.rsp-menu-option .rsp-menu-label').getByText(option, { exact: true }).click();
+}
+
+/** Labels of the options in one settings submenu (the menu is left closed). */
+export async function settingsOptions(page: Page, menu: string): Promise<string[]> {
+  const settings = page.locator('#app .rsp-settings-menu');
+  if (!(await settings.isVisible())) await page.locator('#app .rsp-settings-button').click();
+  if ((await settings.getAttribute('data-view')) !== 'root') await settings.locator('.rsp-menu-back').click();
+  await settings.locator('.rsp-menu-entry .rsp-menu-label').getByText(menu, { exact: true }).click();
+  const labels = await settings.locator('.rsp-menu-option .rsp-menu-label').allTextContents();
+  await page.keyboard.press('Escape');
+  await page.keyboard.press('Escape');
+  return labels;
 }

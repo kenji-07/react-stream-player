@@ -15,7 +15,6 @@ import { InlineRerender } from './examples/InlineRerender';
 import { LiveSessionCues } from './examples/LiveSessionCues';
 import { MediaSession } from './examples/MediaSession';
 import { MultiQualityMp4 } from './examples/MultiQualityMp4';
-import { NativeMode } from './examples/NativeMode';
 import { Reel } from './examples/Reel';
 import { SignedUrlRefresh } from './examples/SignedUrlRefresh';
 import { TypedEvents } from './examples/TypedEvents';
@@ -36,7 +35,6 @@ const EXAMPLES: [string, ComponentType][] = [
   ['DRM', Drm],
   ['Blob input', BlobInput],
   ['Capture frame', CaptureFrame],
-  ['Native UI', NativeMode],
   ['Inline rerenders', InlineRerender],
   ['Signed URL refresh', SignedUrlRefresh],
   ['Live session-time ads', LiveSessionCues],

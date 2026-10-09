@@ -31,8 +31,9 @@ test.describe('layout, fit, motion and accessibility', () => {
     expect(m.videos).toBe(1);
     expect(m.portrait).toBe(true);
     // Touch targets in Reel.
-    const control = await page.locator('.art-control-setting').boundingBox();
+    const control = await page.locator('#app .rsp-play').boundingBox();
     expect(control!.height).toBeGreaterThanOrEqual(44);
+    expect(control!.width).toBeGreaterThanOrEqual(44);
   });
 
   test('every fit value applies to the <video> element in standard and Reel layouts without reloading', async ({ page }) => {
@@ -84,9 +85,16 @@ test.describe('layout, fit, motion and accessibility', () => {
       return { size: getComputedStyle(box).fontSize, color: getComputedStyle(box).color, bg: getComputedStyle(text).backgroundColor };
     });
     expect(style).toEqual({ size: '30px', color: 'rgb(255, 255, 0)', bg: 'rgba(0, 0, 255, 0.5)' });
-    const cue = (await page.locator('.rsp-cue-text').boundingBox())!;
-    const bar = (await page.locator('.art-bottom').boundingBox())!;
-    expect(cue.y + cue.height).toBeLessThanOrEqual(bar.y + bar.height);
+    // With the controls shown, captions sit above the progress bar.
+    await page.locator('#app .rsp-control-row').hover();
+    await expect(page.locator('#app .rsp-ui')).toHaveAttribute('data-controls', 'visible');
+    await expect
+      .poll(async () => {
+        const cue = (await page.locator('.rsp-cue-text').first().boundingBox())!;
+        const bar = (await page.locator('#app .rsp-progress').boundingBox())!;
+        return cue.y + cue.height <= bar.y;
+      })
+      .toBe(true);
     // No duplicate native rendering.
     expect(await page.evaluate(() => [...(document.querySelector('#app video') as HTMLVideoElement).textTracks].filter((t) => t.mode === 'showing').length)).toBe(0);
   });
@@ -105,34 +113,43 @@ test.describe('layout, fit, motion and accessibility', () => {
     expect((await events(page, 'loadStart')).length).toBe(1);
   });
 
-  test('Mongolian locale labels the prebuilt menus and the region', async ({ page }) => {
+  test('Mongolian locale labels the menus, the controls and the region', async ({ page }) => {
     await mount(page, { source: { id: 'm', type: 'mp4', variants: [{ id: 'a', label: '216p', height: 216, src: `${BASE}/fixtures/mp4/vod-216p.mp4` }, { id: 'b', label: '360p', height: 360, src: `${BASE}/fixtures/mp4/vod-360p.mp4` }] }, subtitles: SUBS(), locale: 'mn' });
     await waitForReady(page);
-    await page.locator('.art-control-setting').click();
-    const menus = await page.locator('.art-setting-panel.art-current .art-setting-item-left-text').allTextContents();
-    expect(menus).toEqual(['Хурд', 'Хадмал', 'Чанар']);
+    await page.locator('#app .rsp-settings-button').click();
+    const menus = await page.locator('#app .rsp-settings-menu .rsp-menu-entry .rsp-menu-label').allTextContents();
+    expect(menus).toEqual(['Чанар', 'Хадмал', 'Хурд']);
     expect(await page.locator('#app .rsp-root').getAttribute('aria-label')).toBe('Видео тоглуулагч');
+    await expect(page.locator('#app .rsp-play')).toHaveAttribute('aria-label', 'Тоглуулах');
+    await expect(page.locator('#app .rsp-settings-button')).toHaveAttribute('aria-label', 'Тохиргоо');
+    await expect(page.locator('#app .rsp-progress')).toHaveAttribute('aria-label', 'Байрлал сонгох');
+    await expect(page.locator('#app .rsp-controls')).toHaveAttribute('aria-label', 'Тоглуулагчийн удирдлага');
+    // A locale change relabels the live controls without a reload.
+    await page.keyboard.press('Escape');
+    await page.evaluate(() => window.__h.update({ locale: 'en' }));
+    await expect(page.locator('#app .rsp-play')).toHaveAttribute('aria-label', 'Play');
+    await expect(page.locator('#app .rsp-progress')).toHaveAttribute('aria-label', 'Seek');
+    expect((await events(page, 'loadStart')).length).toBe(1);
   });
 
-  test('native UI mode uses browser controls and native captions; capabilities report the differences', async ({ page }) => {
-    await mount(page, { source: { src: `${BASE}/fixtures/mp4/vod-216p.mp4`, type: 'mp4' }, ui: 'native', subtitles: SUBS(), defaultSubtitleTrack: 'en', network: { crossOrigin: 'anonymous' } });
+  test('the player draws its own controls: no browser controls, captions in the package cue layer, context menu supported', async ({ page }) => {
+    await mount(page, { source: { src: `${BASE}/fixtures/mp4/vod-216p.mp4`, type: 'mp4' }, subtitles: SUBS(), defaultSubtitleTrack: 'en', network: { crossOrigin: 'anonymous' } });
     await waitForReady(page);
     const m = await page.evaluate(() => {
       const v = document.querySelector('#app video') as HTMLVideoElement;
-      return { controls: v.controls, artplayer: document.querySelectorAll('.art-video-player').length, showing: [...v.textTracks].filter((t) => t.mode === 'showing').map((t) => t.label) };
+      return {
+        controls: v.controls,
+        controlsAttr: v.hasAttribute('controls'),
+        uis: document.querySelectorAll('#app .rsp-ui').length,
+        showing: [...v.textTracks].filter((t) => t.mode === 'showing').length,
+        inUi: v.parentElement?.classList.contains('rsp-ui'),
+      };
     });
-    expect(m).toEqual({ controls: true, artplayer: 0, showing: ['English'] });
+    expect(m).toEqual({ controls: false, controlsAttr: false, uis: 1, showing: 0, inUi: true });
     const caps = await page.evaluate(() => window.__h.ref().getCapabilities());
-    expect(caps.contextMenu).toEqual({ supported: false, reason: 'browser-owned-in-native-ui' });
+    expect(caps.contextMenu).toEqual({ supported: true });
     expect(caps.adaptiveQuality.supported).toBe(false);
     expect(caps.requestInterception.supported).toBe(false);
-    // Switching UI at runtime keeps the same video element and position.
-    await page.evaluate(() => window.__h.ref().seekTo(4));
-    await page.evaluate(() => window.__h.update({ ui: 'artplayer' }));
-    await page.waitForSelector('#app .art-video-player');
-    expect(await page.evaluate(() => document.querySelectorAll('#app video').length)).toBe(1);
-    expect(Math.round((await state(page)).currentTime)).toBe(4);
-    expect((await events(page, 'loadStart')).length).toBe(1);
   });
 });
 

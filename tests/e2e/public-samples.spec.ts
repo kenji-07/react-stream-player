@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildCatalog, type RawCategory, type SampleEntry } from '../../examples/nextjs/components/samples/catalog';
+import { SAMPLE_PROXY_PREFIX, sameOrigin } from '../../examples/nextjs/components/samples/proxy';
 import { openHarness } from './helpers';
 
 // OPT-IN probe of the public sample streams (examples/nextjs/components/samples).
@@ -18,7 +19,9 @@ import { openHarness } from './helpers';
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
 const raw = JSON.parse(fs.readFileSync(path.join(root, 'examples/nextjs/components/samples/samples.json'), 'utf8')) as RawCategory[];
-const catalog = buildCatalog(raw);
+// Same configuration as the Next.js example, including its same-origin
+// rewrite for the CORS-less buckets (emulated below with page.route).
+const catalog = buildCatalog(raw, { corsUrl: sameOrigin });
 const loadable = catalog.filter((entry) => entry.config);
 const only = process.env.RSP_PUBLIC_SAMPLES_ONLY ? new RegExp(process.env.RSP_PUBLIC_SAMPLES_ONLY, 'i') : null;
 const outFile = process.env.RSP_PUBLIC_SAMPLES_OUT ?? path.join(root, 'test-results/public-samples.json');
@@ -94,8 +97,28 @@ test.describe('public sample streams (opt-in, real network)', () => {
     test(`${entry.category} / ${entry.name}`, async ({ page }) => {
       const pageErrors: string[] = [];
       page.on('pageerror', (error) => pageErrors.push(error.message));
+      // The example's next.config.mjs rewrite: /sample-media/<bucket>/… → storage.googleapis.com.
+      await page.route(`**${SAMPLE_PROXY_PREFIX}/**`, async (route) => {
+        const url = new URL(route.request().url());
+        const target = `https://storage.googleapis.com/${url.pathname.slice(SAMPLE_PROXY_PREFIX.length + 1)}${url.search}`;
+        await route.fulfill({ response: await route.fetch({ url: target }) });
+      });
       await openHarness(page);
-      await page.evaluate((config) => window.__h.mount({ ...config, autoplay: { enabled: true, mutedFallback: true } }), entry.config as Record<string, unknown>);
+      await page.evaluate(
+        ({ config, prefix }) => {
+          // The example's network.onRequest: absolute bucket URLs inside proxied manifests.
+          const map = (uri: string) => {
+            const m = /^https:\/\/storage\.googleapis\.com\/(exoplayer-test-media-[01]\/.*)$/.exec(uri);
+            return m ? `${prefix}/${m[1]}` : uri;
+          };
+          window.__h.mount({
+            ...config,
+            network: { onRequest: (request: { uris: string[] }) => void (request.uris = request.uris.map(map)) },
+            autoplay: { enabled: true, mutedFallback: true },
+          });
+        },
+        { config: entry.config as Record<string, unknown>, prefix: SAMPLE_PROXY_PREFIX },
+      );
       const deadline = Date.now() + WAIT_MS;
       let outcome: ProbeResult['outcome'] = 'timeout';
       let maxTime = 0;

@@ -72,15 +72,14 @@ function PlayerInner(props: PlayerProps) {
       className={className ? `rsp-root ${className}` : 'rsp-root'}
       style={rootStyle}
       data-layout={props.layout === 'reel' ? 'reel' : 'standard'}
-      data-ui={props.ui === 'native' ? 'native' : 'artplayer'}
     />
   );
 }
 
 /**
- * Plays one video (progressive MP4 variants, HLS or DASH) inside the prebuilt
- * Artplayer UI (or native controls). Client component; safe to import on the
- * server. See docs/api.md for every prop.
+ * Plays one video (progressive MP4 variants, HLS or DASH) with the package's
+ * own controls. Client component; safe to import on the server. See
+ * docs/api.md for every prop.
  */
 export function Player(props: PlayerProps) {
   return (

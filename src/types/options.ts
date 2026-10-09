@@ -18,7 +18,6 @@ import type {
   NetworkConfig,
   StreamingConfig,
   SubtitleStyle,
-  UiMode,
   WatermarkConfig,
 } from './config.js';
 import type { PlayerSource } from './source.js';
@@ -32,8 +31,6 @@ import type { SubtitleTrack } from './tracks.js';
 export interface PlayerOptions {
   /** The video to play. `null` unloads. */
   source: PlayerSource | null;
-  /** Default `"artplayer"`. Changing it rebuilds the UI layer (not the engine). */
-  ui?: UiMode;
   /** Default `"standard"`. `"reel"` is a single portrait video (no feed). */
   layout?: Layout;
   poster?: string;

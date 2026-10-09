@@ -1,7 +1,7 @@
 {
   "name": "react-stream-player",
   "version": "0.1.0",
-  "description": "React 19 video player for progressive MP4, HLS and DASH (Shaka Player) with the Artplayer UI, multiple subtitles, quality/audio selection, direct and VAST (Google IMA) ads, live DVR, fullscreen, hotkeys and Media Session.",
+  "description": "React 19 video player for progressive MP4, HLS and DASH (Shaka Player) with its own accessible controls, multiple subtitles, quality/audio selection, direct and VAST (Google IMA) ads, live DVR, fullscreen, hotkeys and Media Session.",
   "license": "MIT",
   "type": "module",
   "sideEffects": [
@@ -38,7 +38,6 @@
     "hls",
     "dash",
     "shaka-player",
-    "artplayer",
     "drm",
     "vast",
     "ima",
@@ -66,8 +65,6 @@
     "fixtures": "bash scripts/generate-fixtures.sh",
     "fixtures:h264": "FIXTURE_CODEC=h264 bash scripts/generate-fixtures.sh",
     "serve:fixtures": "node scripts/fixture-server.mjs",
-    "prototype:build": "node examples/integration-prototype/build.mjs",
-    "prototype:gate": "npm run prototype:build && node examples/integration-prototype/run-gate.mjs",
     "consumers": "node scripts/consumer-smoke.mjs",
     "prepack": "npm run build"
   },
@@ -76,7 +73,6 @@
     "react-dom": ">=19.0.0"
   },
   "dependencies": {
-    "artplayer": "5.4.0",
     "shaka-player": "~5.2.12"
   },
   "devDependencies": {

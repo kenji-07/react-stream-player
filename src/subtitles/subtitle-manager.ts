@@ -8,11 +8,9 @@ import { NativeCueRenderer } from './native-cue-renderer.js';
 export interface SubtitleHost {
   readonly video: HTMLVideoElement;
   readonly blobs: BlobRegistry;
-  /** Layer for DOM-rendered cues on the native engine (artplayer UI only). */
+  /** Layer for DOM-rendered cues on the native engine. */
   readonly cueLayer: HTMLElement;
   engine(): MediaEngine | null;
-  /** `true` when the browser's own controls are used (native rendering + menu). */
-  nativeUi(): boolean;
   /** Display label for a track without a label. */
   fallbackLabel(language: string): string;
   changed(): void;
@@ -69,27 +67,10 @@ export class SubtitleManager {
 
   /**
    * Browsers may change <track> modes on their own (Chromium's automatic
-   * selection can mark an extra track "showing"), and in native-UI mode the
-   * viewer can pick captions from the browser's own menu. Re-assert the
-   * intended modes, but adopt a genuine single-track menu choice.
+   * selection can mark an extra track "showing"). Re-assert the intended modes.
    */
   private readonly onTrackListChange = () => {
     if (this.destroyed || this.engineKind !== 'native') return;
-    const entries = [...this.external.values()].filter((e) => e.element);
-    const showing = entries.filter((e) => e.element!.track.mode === 'showing');
-    if (this.host.nativeUi() && !this.videoOnlyPresentation) {
-      const current = this.selectedId ?? null;
-      if (showing.length === 1 && showing[0]!.track.id !== current) {
-        this.select(showing[0]!.track.id);
-        this.host.changed();
-        return;
-      }
-      if (showing.length === 0 && current !== null) {
-        this.select(null);
-        this.host.changed();
-        return;
-      }
-    }
     this.apply();
   };
 
@@ -336,7 +317,9 @@ export class SubtitleManager {
       return;
     }
     if (this.engineKind === 'native') {
-      const showNative = this.host.nativeUi() || this.videoOnlyPresentation;
+      // Video-only presentation (iOS element fullscreen, picture-in-picture):
+      // the browser draws the cues; otherwise the package's cue layer does.
+      const showNative = this.videoOnlyPresentation;
       let activeTrack: TextTrack | null = null;
       for (const entry of this.external.values()) {
         const el = entry.element;
@@ -346,13 +329,9 @@ export class SubtitleManager {
         if (el.track.mode !== mode) el.track.mode = mode;
         if (isSelected) activeTrack = el.track;
       }
-      if (!this.host.nativeUi()) {
-        if (!this.renderer) this.renderer = new NativeCueRenderer(this.host.cueLayer);
-        this.renderer.attach(activeTrack);
-        this.renderer.setSuspended(showNative);
-      } else {
-        this.renderer?.attach(null);
-      }
+      if (!this.renderer) this.renderer = new NativeCueRenderer(this.host.cueLayer);
+      this.renderer.attach(activeTrack);
+      this.renderer.setSuspended(showNative);
     }
   }
 

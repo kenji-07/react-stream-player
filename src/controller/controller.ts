@@ -20,10 +20,9 @@ import type { PlayerOptions } from '../types/options.js';
 import type { FullscreenController, PlayerRef } from '../types/ref.js';
 import type { CapabilityStatus, LiveState, PlayerCapabilities, PlayerState, PlayerStats, PlayerStatus, TimeRange } from '../types/state.js';
 import type { AudioTrack, QualitySelection, QualityTrack, SubtitleTrackInfo } from '../types/tracks.js';
-import { ArtplayerAdapter } from '../ui/artplayer-adapter.js';
 import { languageName, resolveTranslations, type Translations } from '../ui/i18n.js';
 import { PlayerLayers } from '../ui/layers.js';
-import { NativeUiAdapter } from '../ui/native-ui.js';
+import { PlayerUi } from '../ui/player-ui.js';
 import type { MenuModel, UiActions, UiAdapter, UiConfig } from '../ui/ui-adapter.js';
 import { TypedEmitter, reportListenerError } from '../utils/emitter.js';
 import { canSetVolume, now, prefersReducedMotion } from '../utils/env.js';
@@ -106,6 +105,8 @@ export class PlayerController {
 
   private ui: UiAdapter | null = null;
   private uiPromise: Promise<void> | null = null;
+  /** `start()` ran: source changes apply immediately from now on. */
+  private started = false;
   private layers: PlayerLayers | null = null;
   private subtitles: SubtitleManager | null = null;
   private fullscreen: FullscreenManager | null = null;
@@ -211,9 +212,14 @@ export class PlayerController {
     this.installVideoListeners();
     this.installPageListeners();
     this.reportIssues(issues);
-    this.uiPromise = this.buildUi().catch((error) => {
-      if (!this.destroyed) this.fail(playerError('unexpected-error', 'unexpected', { fatal: true, cause: error, message: 'The player UI could not be initialised.' }));
-    });
+    this.buildUi();
+    // The first load starts after construction returns: under React Strict
+    // Mode the first instance is destroyed synchronously and never loads.
+    this.uiPromise = Promise.resolve()
+      .then(() => this.start())
+      .catch((error) => {
+        if (!this.destroyed) this.fail(playerError('unexpected-error', 'unexpected', { fatal: true, cause: error, message: 'The player could not be initialised.' }));
+      });
   }
 
   // ------------------------------------------------------------------ setup
@@ -226,7 +232,6 @@ export class PlayerController {
       loadId: null,
       sourceType: null,
       engine: null,
-      ui: o.ui,
       layout: o.layout,
       fit: o.fit,
       intendedPlaying: false,
@@ -271,7 +276,6 @@ export class PlayerController {
     const root = this.root;
     const o = this.opts;
     root.dataset.layout = o.layout;
-    root.dataset.ui = o.ui;
     root.setAttribute('aria-label', o.title ?? this.t.player);
     const style = root.style;
     style.setProperty('--rsp-aspect-ratio', o.aspectRatio);
@@ -306,21 +310,39 @@ export class PlayerController {
     return {
       translations: this.t,
       locale: o.locale,
+      layout: o.layout,
       poster: o.poster,
       contextMenu: o.contextMenu,
       playbackRates: o.playbackRates,
       fullscreenMode: o.fullscreen.mode,
       pictureInPicture: o.pictureInPicture,
       airplay: o.airplay,
+      volumeControl: canSetVolume(),
       preventClickToggle: o.preventClickToggle,
       loop: this.loopEnabled(),
       seekStep: o.seekStep,
+      liveEdgeTolerance: o.liveEdgeTolerance,
     };
   }
 
   private uiActions(): UiActions {
     return {
       togglePlay: () => this.togglePlay('ui'),
+      seekTo: (seconds) => void this.seekTo(seconds).catch(() => undefined),
+      setVolume: (value) => this.setVolume(value),
+      setMuted: (muted) => {
+        // Unmuting at volume 0 restores the last audible level.
+        if (!muted && this.video.volume === 0 && this.opts.volume === undefined) this.setVolume(this.lastNonZeroVolume);
+        this.setMuted(muted);
+      },
+      togglePictureInPicture: () => {
+        const action = document.pictureInPictureElement === this.video ? this.exitPictureInPicture() : this.enterPictureInPicture();
+        void action.catch((e) => this.reportNonFatal(e));
+      },
+      showAirplayPicker: () => {
+        const v = this.video as HTMLVideoElement & { webkitShowPlaybackTargetPicker?: () => void };
+        if (this.opts.airplay && typeof v.webkitShowPlaybackTargetPicker === 'function') v.webkitShowPlaybackTargetPicker();
+      },
       selectQuality: (id) => void this.requestQuality(id).catch(() => undefined),
       selectAudio: (id) => void this.requestAudio(id).catch(() => undefined),
       selectSubtitle: (id) => void this.requestSubtitle(id).catch(() => undefined),
@@ -344,79 +366,56 @@ export class PlayerController {
     };
   }
 
-  private async buildUi(): Promise<void> {
-    const kind = this.opts.ui;
-    let ui: UiAdapter;
-    if (kind === 'artplayer') {
-      ui = await ArtplayerAdapter.create({ container: this.stage, video: this.video, config: this.uiConfig(), actions: this.uiActions(), preload: this.opts.preload });
-    } else {
-      ui = new NativeUiAdapter(this.stage, this.video, this.uiConfig());
-    }
-    if (this.destroyed) {
-      ui.destroy();
-      return;
-    }
-    // A `ui` change while the previous adapter was being built: rebuild.
-    if (kind !== this.opts.ui) {
-      ui.destroy();
-      return this.buildUi();
-    }
+  private buildUi(): void {
+    const ui = new PlayerUi({ container: this.stage, keyboardRoot: this.root, video: this.video, config: this.uiConfig(), actions: this.uiActions() });
     this.ui = ui;
-    if (this.layers) {
-      // UI rebuild: move the existing layers (captions, ads, status) unchanged.
-      ui.layerHost.append(this.layers.text, this.layers.watermark, this.layers.ads, this.layers.status);
-    } else {
-      this.layers = new PlayerLayers(ui.layerHost);
-    }
-    this.layers.setWatermark(this.opts.watermark);
-    this.fullscreen?.destroy();
+    const layers = new PlayerLayers(ui.layerHost);
+    this.layers = layers;
+    layers.setWatermark(this.opts.watermark);
     this.fullscreen = new FullscreenManager(() => this.ui?.fullscreenTarget ?? this.root, this.root, this.video, (state) => this.onFullscreenChange(state));
-    if (!this.subtitles) {
-      this.subtitles = new SubtitleManager({
-        video: this.video,
-        blobs: this.blobs,
-        cueLayer: this.layers.text,
-        engine: () => this.engine,
-        nativeUi: () => this.opts.ui === 'native',
-        fallbackLabel: (lang) => languageName(lang, this.opts.locale, this.t.unknownLanguage),
-        changed: () => this.refreshTracks(),
-        error: (e) => this.reportNonFatal(e),
-      });
-      this.subtitles.setExternal(this.opts.subtitles);
-    }
-    if (!this.ads) {
-      const layers = this.layers;
-      this.ads = new AdsManager({
-        layer: layers.ads,
-        contentVideo: this.video,
-        blobs: this.blobs,
-        t: () => this.t,
-        clickPolicy: () => ({ allowedSchemes: this.opts.clickThroughSchemes }),
-        nonce: () => this.opts.nonce,
-        sessionSeconds: () => this.session?.clock.seconds() ?? 0,
-        contentAudio: () => ({ volume: this.video.volume, muted: this.video.muted }),
-        autoplayIntended: () => this.opts.autoplay.enabled,
-        createEngine: (video, source) => this.createAdEngine(video, source),
-        beginLinearBreak: (info) => this.beginLinearBreak(info),
-        endLinearBreak: (info) => this.endLinearBreak(info),
-        emit: (event, payload) => this.emit(event, payload as never),
-        adProgressState: (info, currentTime, duration, skippableIn) => this.setAdProgressState(info, currentTime, duration, skippableIn),
-      });
-      this.ads.configure(this.opts.ads);
-    }
+    this.subtitles = new SubtitleManager({
+      video: this.video,
+      blobs: this.blobs,
+      cueLayer: layers.text,
+      engine: () => this.engine,
+      fallbackLabel: (lang) => languageName(lang, this.opts.locale, this.t.unknownLanguage),
+      changed: () => this.refreshTracks(),
+      error: (e) => this.reportNonFatal(e),
+    });
+    this.subtitles.setExternal(this.opts.subtitles);
+    this.ads = new AdsManager({
+      layer: layers.ads,
+      contentVideo: this.video,
+      blobs: this.blobs,
+      t: () => this.t,
+      clickPolicy: () => ({ allowedSchemes: this.opts.clickThroughSchemes }),
+      nonce: () => this.opts.nonce,
+      sessionSeconds: () => this.session?.clock.seconds() ?? 0,
+      contentAudio: () => ({ volume: this.video.volume, muted: this.video.muted }),
+      autoplayIntended: () => this.opts.autoplay.enabled,
+      createEngine: (video, source) => this.createAdEngine(video, source),
+      beginLinearBreak: (info) => this.beginLinearBreak(info),
+      endLinearBreak: (info) => this.endLinearBreak(info),
+      emit: (event, payload) => this.emit(event, payload as never),
+      adProgressState: (info, currentTime, duration, skippableIn) => this.setAdProgressState(info, currentTime, duration, skippableIn),
+    });
+    this.ads.configure(this.opts.ads);
+    ui.setFullscreen(this.state.fullscreen);
+    ui.setAdActive(false);
+    ui.setCast(this.castUiState());
+    ui.setAirplay(this.state.airplay);
+    ui.setDuration(this.state.duration);
+  }
+
+  /** Deferred part of construction: Cast SDK, track menus and the first source. */
+  private start(): void {
+    if (this.destroyed) return;
+    this.started = true;
     if (this.opts.cast.enabled) this.ensureCast();
-    this.ui.setFullscreen(this.state.fullscreen);
-    this.ui.setAdActive(this.linearAdActive());
-    this.ui.setCast(this.castUiState());
-    this.ui.setDuration(this.state.duration);
     this.refreshTracks();
     this.updateLiveState(true);
     if (!this.root.isConnected) return;
-    // Apply the source last so every manager is wired before loading.
     if (!this.session) this.applySource(this.rawOptions.source, true);
-    if (this.state.intendedPlaying && this.video.paused && this.session?.contentStarted && !this.linearAdActive()) {
-      void this.playElement('restore');
-    }
   }
 
   private reportIssues(issues: OptionIssue[]): void {
@@ -479,11 +478,7 @@ export class PlayerController {
       if (clamped !== this.video.playbackRate) this.setPlaybackRate(clamped);
     }
 
-    if (this.ui && prev.ui !== resolved.ui) {
-      void this.rebuildUi();
-    } else if (this.ui) {
-      this.ui.configure(this.uiConfig());
-    }
+    this.ui?.configure(this.uiConfig());
     if (!semanticEqual(prev.watermark, resolved.watermark)) this.layers?.setWatermark(resolved.watermark);
     this.mediaSession.configure(resolved.mediaSession);
     if (resolved.cast.enabled && !prev.cast.enabled) this.ensureCast();
@@ -505,22 +500,10 @@ export class PlayerController {
     this.refreshTracks();
   }
 
-  private async rebuildUi(): Promise<void> {
-    const old = this.ui;
-    this.ui = null;
-    const wasPlaying = this.state.intendedPlaying && !this.video.paused;
-    if (old) {
-      if (this.layers) this.root.append(this.layers.text, this.layers.watermark, this.layers.ads, this.layers.status);
-      old.destroy();
-    }
-    await this.buildUi();
-    if (wasPlaying && this.video.paused && !this.linearAdActive()) void this.playElement('restore');
-  }
-
   // ------------------------------------------------------------ source/session
 
   private applySource(source: PlayerSource | null, initial: boolean): void {
-    if (!this.ui && !initial) return; // buildUi() applies the latest source when ready
+    if (!this.started && !initial) return; // start() applies the latest source
     if (source === null || source === undefined) {
       void this.endSession();
       return;
@@ -554,7 +537,7 @@ export class PlayerController {
     this.state.sourceType = null;
     this.state.duration = null;
     this.state.intendedPlaying = false;
-    this.layers?.clearError();
+    this.clearErrorPanel();
     this.state.error = null;
     this.refreshTracks();
   }
@@ -591,7 +574,7 @@ export class PlayerController {
     this.state.ended = false;
     this.state.duration = null;
     this.state.currentTime = 0;
-    this.layers?.clearError();
+    this.clearErrorPanel();
     this.lastLiveEmit = null;
     this.state.live = { isLive: false, atLiveEdge: false, seekableRange: null, behindLiveEdge: null, latency: null, targetLatency: null };
     this.state.intendedPlaying = this.opts.autoplay.enabled;
@@ -624,7 +607,7 @@ export class PlayerController {
     const engine: MediaEngine =
       kind === 'native'
         ? new NativeVideoEngine(this.video)
-        : new ShakaEngine(this.video, this.opts.ui === 'artplayer' ? this.layers?.text ?? null : null, {
+        : new ShakaEngine(this.video, this.layers?.text ?? null, {
             credentialRules: () => this.credentialRules,
             credentialedRedirect: () => this.opts.network.credentialedRedirect ?? 'error',
             onRequest: () => this.opts.network.onRequest,
@@ -777,7 +760,7 @@ export class PlayerController {
     this.state.duration = this.contentDuration();
     this.ui?.setDuration(this.state.duration);
     this.state.error = null;
-    this.layers?.clearError();
+    this.clearErrorPanel();
     this.setStatus('ready');
     this.ui?.setLoading(false);
     this.updateLiveState(true);
@@ -843,10 +826,10 @@ export class PlayerController {
   // ------------------------------------------------------------ play/pause intent
 
   /**
-   * The controller is the single owner of play/pause intent. All vendor UI
-   * paths call `video.play()`/`video.pause()` on our element (verified in
-   * Artplayer 5.4.0), so those instance methods route through the controller
-   * (prerolls, ad breaks and autoplay policy cannot be bypassed).
+   * The controller is the single owner of play/pause intent. Host code or
+   * extensions that call `video.play()`/`video.pause()` on our element are
+   * routed through the controller (prerolls, ad breaks and autoplay policy
+   * cannot be bypassed).
    */
   private installIntentRouting(): void {
     const video = this.video as HTMLVideoElement & { play: () => Promise<void>; pause: () => void };
@@ -1168,11 +1151,13 @@ export class PlayerController {
     this.listen(v, 'webkitplaybacktargetavailabilitychanged', (event) => {
       const available = (event as Event & { availability?: string }).availability === 'available';
       this.state.airplay = { ...this.state.airplay, available };
+      this.ui?.setAirplay(this.state.airplay);
       this.emit('airplayChange', { ...this.state.airplay });
     });
     this.listen(v, 'webkitcurrentplaybacktargetiswirelesschanged', () => {
       const active = Boolean((v as HTMLVideoElement & { webkitCurrentPlaybackTargetIsWireless?: boolean }).webkitCurrentPlaybackTargetIsWireless);
       this.state.airplay = { ...this.state.airplay, active };
+      this.ui?.setAirplay(this.state.airplay);
       this.emit('airplayChange', { ...this.state.airplay });
     });
   }
@@ -1301,7 +1286,7 @@ export class PlayerController {
       targetLatency: isLive ? engine!.targetLatency() : null,
     };
     this.state.live = live;
-    this.ui?.setLive({ isLive, atLiveEdge: live.atLiveEdge, behindLiveEdge: behind, seekable: Boolean(range && range.end - range.start > 1) });
+    this.ui?.setLive({ isLive, atLiveEdge: live.atLiveEdge, behindLiveEdge: behind, seekableRange: range });
     const prev = this.lastLiveEmit;
     const significant =
       force ||
@@ -1362,7 +1347,13 @@ export class PlayerController {
     this.state.error = contextual;
     this.setStatus('error');
     this.layers?.showError(contextual, this.t, contextual.recoverable && session ? () => void this.retry().catch(() => undefined) : null);
+    this.ui?.setError(true);
     this.emit('error', contextual);
+  }
+
+  private clearErrorPanel(): void {
+    this.layers?.clearError();
+    this.ui?.setError(false);
   }
 
   private reportNonFatal(error: unknown): void {
@@ -1378,7 +1369,7 @@ export class PlayerController {
     if (this.retryTimer) clearTimeout(this.retryTimer);
     this.retryTimer = null;
     session.autoRetries = 0;
-    this.layers?.clearError();
+    this.clearErrorPanel();
     this.state.error = null;
     if (!this.engine) this.attachEngine(session.source.type === 'mp4' ? 'native' : 'shaka');
     await this.reloadTransport('retry');
@@ -1671,7 +1662,7 @@ export class PlayerController {
       const fallback = this.progressive.begin(previous, time);
       this.state.quality.selected = previous;
       this.state.error = null;
-      this.layers?.clearError();
+      this.clearErrorPanel();
       this.setStatus('ready');
       const restored = await this.loadTransportForQuality(session, time);
       if (!this.progressive.isLatest(fallback)) return;
@@ -2046,7 +2037,6 @@ export class PlayerController {
     const variants = isMp4 ? session!.source.variants.length : 0;
     const pip = typeof document !== 'undefined' && document.pictureInPictureEnabled === true && this.opts.pictureInPicture;
     const airplay = typeof (window as { WebKitPlaybackTargetAvailabilityEvent?: unknown }).WebKitPlaybackTargetAvailabilityEvent !== 'undefined';
-    const nativeUi = this.opts.ui === 'native';
     return {
       engine: engine?.kind ?? null,
       adaptiveQuality: capability(Boolean(caps?.adaptiveQuality) && !isMp4, isMp4 ? 'progressive-mp4-variants-are-manual-only' : caps?.qualityUnavailableReason ?? 'no-adaptive-source'),
@@ -2065,7 +2055,7 @@ export class PlayerController {
       drm: capability(Boolean(caps?.drm) && !isMp4, isMp4 ? 'progressive-mp4-is-unprotected-only' : 'eme-unavailable'),
       streamingConfig: capability(Boolean(caps?.streamingConfig), 'native-progressive-path'),
       requestInterception: capability(Boolean(caps?.requestInterception), 'native-element-requests-cannot-be-intercepted'),
-      contextMenu: capability(!nativeUi && this.opts.contextMenu.enabled, nativeUi ? 'browser-owned-in-native-ui' : 'disabled-by-option'),
+      contextMenu: capability(this.opts.contextMenu.enabled, 'disabled-by-option'),
       liveSeek: capability(Boolean(this.state.live.seekableRange && this.state.live.seekableRange.end - this.state.live.seekableRange.start > 1), this.state.live.isLive ? 'no-dvr-window' : 'not-live'),
     };
   }

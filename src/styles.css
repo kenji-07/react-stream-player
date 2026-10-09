@@ -1,7 +1,15 @@
-/* react-stream-player — minimal layout for the player root, the package-owned
-   layers (captions, ads, status, watermark), Reel layout and web fullscreen.
-   The content controls are Artplayer's own (its stylesheet is injected by
-   Artplayer at runtime). Values use CSS custom properties set per instance. */
+/* react-stream-player — styles for the player root, the package-owned
+   controls, layers (captions, ads, status, watermark), Reel layout and web
+   fullscreen. Values use CSS custom properties; override them on `.rsp-root`
+   (or any ancestor) to theme the player:
+     --rsp-accent            progress fill, thumbs, focus ring (#4da3ff)
+     --rsp-control-size      button size (40px; 44px in Reel and on touch)
+     --rsp-control-compact-size  button width in players ≤ 420px wide (36px;
+                             44px in Reel and on touch)
+     --rsp-control-color     icon/text colour (#fff)
+     --rsp-menu-background   settings/context menu background
+   No inline <style> is injected at runtime; positions are set through the
+   CSSOM (element.style), which a strict style-src CSP allows. */
 
 .rsp-root {
   position: relative;
@@ -21,14 +29,9 @@
   outline: 2px solid #4da3ff;
   outline-offset: 2px;
 }
-.rsp-stage,
-.rsp-native-frame {
+.rsp-stage {
   position: absolute;
   inset: 0;
-}
-.rsp-stage > .art-video-player {
-  width: 100% !important;
-  height: 100% !important;
 }
 .rsp-video {
   display: block;
@@ -75,8 +78,8 @@
   --rsp-caption-lift: 0px;
   transition: --rsp-caption-lift var(--rsp-motion-duration, 200ms);
 }
-.art-video-player.art-control-show .rsp-text-layer {
-  --rsp-caption-lift: 56px;
+.rsp-ui[data-controls='visible']:not([data-ad-active]) .rsp-text-layer {
+  --rsp-caption-lift: calc(var(--rsp-control-size) + 28px);
 }
 .rsp-cues,
 .rsp-text-layer > .shaka-text-container {
@@ -110,59 +113,493 @@
   -webkit-box-decoration-break: clone;
 }
 
-/* ---------------------------------------------------------------- live */
-.rsp-live .art-control-progress,
-.rsp-live .art-control-time {
-  display: none !important;
+/* ---------------------------------------------------------------- controls */
+.rsp-root {
+  --rsp-accent: #4da3ff;
+  --rsp-control-size: 40px;
+  /* Button width in narrow players (≤ 420px wide). */
+  --rsp-control-compact-size: 36px;
+  --rsp-control-color: #fff;
+  --rsp-menu-background: rgba(18, 18, 18, 0.95);
 }
-.art-control-rsp-live .rsp-live-label {
-  font: 700 12px/1 system-ui, sans-serif;
-  letter-spacing: 0.04em;
-  padding: 4px 6px;
-  border-radius: 3px;
-  background: #d00;
-  color: #fff;
+@media (pointer: coarse) {
+  .rsp-root {
+    --rsp-control-size: 44px;
+    --rsp-control-compact-size: 44px;
+  }
 }
-.rsp-live-behind .art-control-rsp-live .rsp-live-label {
-  background: #555;
+.rsp-ui {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #000;
+  color: var(--rsp-control-color);
+  font: 14px/1.2 system-ui, -apple-system, 'Segoe UI', sans-serif;
+  container-type: inline-size;
+  isolation: isolate;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+.rsp-ui:fullscreen {
+  width: 100%;
+  height: 100%;
+}
+.rsp-ui[data-controls='hidden'] {
+  cursor: none;
+}
+.rsp-ui[data-controls='hidden'] .rsp-video {
+  cursor: none;
 }
 
-/* ---------------------------------------------------------------- controls */
-.rsp-fullscreen-icons {
+.rsp-button {
+  position: relative;
   display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--rsp-control-size);
+  height: var(--rsp-control-size);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
-.rsp-fullscreen-icons .rsp-fs-off,
-.rsp-fs-active .rsp-fullscreen-icons .rsp-fs-on {
+.rsp-button[hidden] {
   display: none;
 }
-.rsp-fs-active .rsp-fullscreen-icons .rsp-fs-off {
-  display: inline-flex;
+.rsp-button:hover {
+  background: rgba(255, 255, 255, 0.12);
 }
-.rsp-root .art-control:focus-visible,
-.rsp-root .art-setting-item:focus-visible,
-.rsp-root .art-control-progress:focus-visible {
-  outline: 2px solid #4da3ff;
+.rsp-button:disabled {
+  cursor: default;
+  background: transparent;
+}
+.rsp-button.rsp-active,
+.rsp-button[aria-pressed='true'].rsp-captions {
+  color: var(--rsp-accent);
+}
+.rsp-icon {
+  width: 24px;
+  height: 24px;
+  pointer-events: none;
+}
+.rsp-ui :focus-visible {
+  outline: 2px solid var(--rsp-accent);
   outline-offset: -2px;
 }
-.rsp-context-rates {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-.rsp-context-rate {
-  cursor: pointer;
-  padding: 0 2px;
-}
-.rsp-context-rate:hover {
-  text-decoration: underline;
+.rsp-captions[aria-pressed='true']::after {
+  content: '';
+  position: absolute;
+  left: 25%;
+  right: 25%;
+  bottom: 6px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--rsp-accent);
 }
 
-/* Content controls are not operable during linear ads. */
-.rsp-root[data-rsp-ad-active] .art-bottom,
-.rsp-root[data-rsp-ad-active] .art-mask,
-.rsp-root[data-rsp-ad-active] .art-settings,
-.rsp-root[data-rsp-ad-active] .art-loading {
-  display: none !important;
+/* Bottom bar: progress above a row of buttons. */
+.rsp-controls {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 24px 8px 6px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.72), rgba(0, 0, 0, 0.35) 60%, transparent);
+  transition: opacity var(--rsp-motion-duration, 200ms) var(--rsp-motion-easing, ease),
+    transform var(--rsp-motion-duration, 200ms) var(--rsp-motion-easing, ease);
+}
+.rsp-ui[data-controls='hidden'] .rsp-controls {
+  opacity: 0;
+  transform: translateY(8px);
+  pointer-events: none;
+}
+.rsp-control-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  min-width: 0;
+}
+.rsp-control-group {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+}
+.rsp-control-right {
+  flex: none;
+}
+.rsp-time {
+  padding: 0 8px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.rsp-time[hidden] {
+  display: none;
+}
+
+/* Live indicator: red dot at the edge, grey (and clickable) when behind. */
+.rsp-live-button {
+  width: auto;
+  gap: 6px;
+  padding: 0 10px;
+  font: 700 12px/1 system-ui, sans-serif;
+  letter-spacing: 0.04em;
+}
+.rsp-live-button[aria-disabled='true'] {
+  cursor: default;
+  background: transparent;
+}
+.rsp-live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #e5302f;
+}
+.rsp-live-behind .rsp-live-dot {
+  background: #9a9a9a;
+}
+
+/* Sliders (progress/DVR and volume). */
+.rsp-slider {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 20px;
+  cursor: pointer;
+  touch-action: none;
+  outline: none;
+}
+.rsp-slider[hidden] {
+  display: none;
+}
+.rsp-slider[aria-disabled='true'] {
+  cursor: default;
+  opacity: 0.5;
+}
+.rsp-slider-track {
+  position: relative;
+  width: 100%;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.25);
+  transition: height var(--rsp-motion-duration, 200ms) var(--rsp-motion-easing, ease);
+}
+.rsp-slider:hover .rsp-slider-track,
+.rsp-slider[data-dragging] .rsp-slider-track,
+.rsp-slider:focus-visible .rsp-slider-track {
+  height: 6px;
+}
+.rsp-slider-buffered,
+.rsp-slider-buffered-range,
+.rsp-slider-fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+}
+.rsp-slider-buffered {
+  left: 0;
+  right: 0;
+}
+.rsp-slider-buffered-range {
+  background: rgba(255, 255, 255, 0.4);
+}
+.rsp-slider-fill {
+  left: 0;
+  background: var(--rsp-accent);
+}
+.rsp-slider-thumb {
+  position: absolute;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
+  border-radius: 50%;
+  background: var(--rsp-accent);
+  transform: scale(0);
+  transition: transform var(--rsp-motion-duration, 200ms) var(--rsp-motion-easing, ease);
+  pointer-events: none;
+}
+.rsp-slider:hover .rsp-slider-thumb,
+.rsp-slider:focus-visible .rsp-slider-thumb,
+.rsp-slider[data-dragging] .rsp-slider-thumb,
+.rsp-volume .rsp-slider-thumb {
+  transform: scale(1);
+}
+.rsp-slider[aria-disabled='true'] .rsp-slider-thumb {
+  transform: scale(0);
+}
+.rsp-slider:focus-visible {
+  outline: none;
+}
+.rsp-slider:focus-visible .rsp-slider-thumb {
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.9);
+}
+.rsp-slider-tooltip {
+  position: absolute;
+  bottom: 22px;
+  padding: 3px 6px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.85);
+  font: 600 12px/1.2 system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+.rsp-slider-tooltip[hidden] {
+  display: none;
+}
+.rsp-progress {
+  margin: 0 6px;
+}
+
+/* Volume: the slider opens beside the mute button on hover or focus. */
+.rsp-volume-group {
+  display: flex;
+  align-items: center;
+}
+.rsp-volume {
+  width: 0;
+  overflow: visible;
+  opacity: 0;
+  transition: width var(--rsp-motion-duration, 200ms) var(--rsp-motion-easing, ease),
+    opacity var(--rsp-motion-duration, 200ms) var(--rsp-motion-easing, ease),
+    margin var(--rsp-motion-duration, 200ms) var(--rsp-motion-easing, ease);
+}
+.rsp-volume-group:hover .rsp-volume,
+.rsp-volume-group:focus-within .rsp-volume,
+.rsp-volume[data-dragging] {
+  width: 72px;
+  margin: 0 8px 0 4px;
+  opacity: 1;
+}
+
+/* Big play button and loading spinner (centre). */
+.rsp-big-play {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 40;
+  width: 68px;
+  height: 68px;
+  margin: -34px 0 0 -34px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  transition: transform var(--rsp-motion-duration, 200ms) var(--rsp-motion-easing, ease),
+    background-color var(--rsp-motion-duration, 200ms) var(--rsp-motion-easing, ease);
+}
+.rsp-big-play:hover {
+  background: rgba(0, 0, 0, 0.75);
+  transform: scale(1.06);
+}
+.rsp-big-play .rsp-icon {
+  width: 36px;
+  height: 36px;
+}
+.rsp-spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 40;
+  width: 44px;
+  height: 44px;
+  margin: -22px 0 0 -22px;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: rsp-spin 0.9s linear infinite;
+  pointer-events: none;
+}
+.rsp-spinner[hidden] {
+  display: none;
+}
+@keyframes rsp-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Transient notices ("Diagnostics copied"). */
+.rsp-notice {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  z-index: 70;
+  max-width: 80%;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.8);
+  font-weight: 600;
+  text-align: center;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+.rsp-notice[hidden] {
+  display: none;
+}
+
+/* Menus (settings popover, context menu). */
+.rsp-menu {
+  position: absolute;
+  z-index: 60;
+  min-width: 200px;
+  max-width: calc(100% - 16px);
+  padding: 6px 0;
+  overflow-y: auto;
+  border-radius: 8px;
+  background: var(--rsp-menu-background);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
+  font-size: 14px;
+  cursor: default;
+}
+.rsp-menu[hidden] {
+  display: none;
+}
+.rsp-settings-menu {
+  right: 8px;
+  bottom: calc(var(--rsp-control-size) + 32px);
+  max-height: calc(100% - var(--rsp-control-size) - 44px);
+}
+.rsp-context-menu {
+  max-height: calc(100% - 8px);
+}
+.rsp-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 40px;
+  margin: 0;
+  padding: 0 14px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.rsp-menu-item:hover,
+.rsp-menu-item:focus {
+  background: rgba(255, 255, 255, 0.12);
+  outline: none;
+}
+.rsp-menu-item:focus-visible {
+  outline: 2px solid var(--rsp-accent);
+  outline-offset: -2px;
+}
+.rsp-menu-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rsp-menu-value {
+  flex: none;
+  max-width: 50%;
+  overflow: hidden;
+  color: rgba(255, 255, 255, 0.7);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rsp-menu-item .rsp-icon {
+  flex: none;
+  width: 18px;
+  height: 18px;
+}
+.rsp-menu-back {
+  font-weight: 600;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  margin-bottom: 4px;
+}
+.rsp-menu-check {
+  visibility: hidden;
+}
+[aria-checked='true'] > .rsp-menu-check {
+  visibility: visible;
+  color: var(--rsp-accent);
+}
+.rsp-context-item[aria-checked]::before {
+  content: '';
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border: 1.5px solid currentColor;
+  border-radius: 2px;
+}
+.rsp-context-item[role='menuitemradio']::before {
+  border-radius: 50%;
+}
+.rsp-context-item[aria-checked='true']::before {
+  border-color: var(--rsp-accent);
+  background: var(--rsp-accent);
+}
+.rsp-context-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  padding: 2px 0 4px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  margin-bottom: 4px;
+}
+.rsp-context-group-label {
+  width: 100%;
+  padding: 6px 14px 2px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+}
+.rsp-context-group .rsp-context-item {
+  width: auto;
+  min-height: 32px;
+  padding: 0 10px;
+  gap: 6px;
+}
+
+/* During linear ads the content controls step aside (the ad layer has its own). */
+.rsp-ui[data-ad-active] .rsp-controls,
+.rsp-ui[data-ad-active] .rsp-big-play,
+.rsp-ui[data-ad-active] .rsp-spinner,
+.rsp-ui[data-ad-active] .rsp-menu {
+  display: none;
+}
+.rsp-ui[data-error] .rsp-big-play,
+.rsp-ui[data-error] .rsp-spinner {
+  display: none;
+}
+
+/* Narrow players: narrower buttons (touch and Reel keep 44px targets); the
+   time readout gives way first. */
+@container (max-width: 420px) {
+  .rsp-controls {
+    padding-inline: 4px;
+  }
+  .rsp-control-row .rsp-button:not(.rsp-live-button) {
+    width: var(--rsp-control-compact-size);
+  }
+  .rsp-time {
+    padding: 0 4px;
+    font-size: 12px;
+  }
+}
+@container (max-width: 300px) {
+  .rsp-time {
+    display: none;
+  }
 }
 
 /* ---------------------------------------------------------------- ads */
@@ -340,27 +777,6 @@
   padding: 16px;
   text-align: center;
 }
-.rsp-spinner {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 44px;
-  height: 44px;
-  margin: -22px 0 0 -22px;
-  border: 4px solid rgba(255, 255, 255, 0.3);
-  border-top-color: #fff;
-  border-radius: 50%;
-  animation: rsp-spin 0.9s linear infinite;
-}
-.rsp-spinner[hidden] {
-  display: none;
-}
-@keyframes rsp-spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 /* ---------------------------------------------------------------- watermark */
 .rsp-watermark {
   position: absolute;
@@ -402,12 +818,12 @@
   max-width: min(100%, var(--rsp-reel-max-width, 420px));
   margin-inline: auto;
 }
-.rsp-root[data-layout='reel'] .art-bottom {
-  padding-bottom: env(safe-area-inset-bottom, 0px);
+.rsp-root[data-layout='reel'] .rsp-ui {
+  --rsp-control-size: 44px;
+  --rsp-control-compact-size: 44px;
 }
-.rsp-root[data-layout='reel'] .art-control {
-  min-width: 44px;
-  min-height: 44px;
+.rsp-root[data-layout='reel'] .rsp-controls {
+  padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px));
 }
 .rsp-root[data-layout='reel'] .rsp-ad-overlay {
   top: calc(12px + env(safe-area-inset-top, 0px));
@@ -449,9 +865,4 @@
   clip: rect(0 0 0 0);
   white-space: nowrap;
   border: 0;
-}
-
-/* Cast control: highlighted while a session is connected. */
-.rsp-root .art-control-rsp-cast.rsp-cast-connected {
-  color: var(--art-theme, #00b4ff);
 }

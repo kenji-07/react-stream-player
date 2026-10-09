@@ -1,5 +1,5 @@
 import type { AdInfo, AdPipeline } from './ads.js';
-import type { Fit, FullscreenMode, Layout, UiMode } from './config.js';
+import type { Fit, FullscreenMode, Layout } from './config.js';
 import type { PlayerError } from './errors.js';
 import type { ResolvedSourceType } from './source.js';
 import type { AudioTrack, QualityTrack, SubtitleTrackInfo } from './tracks.js';
@@ -46,7 +46,6 @@ export interface PlayerState {
   loadId: number | null;
   sourceType: ResolvedSourceType | null;
   engine: 'native' | 'shaka' | null;
-  ui: UiMode;
   layout: Layout;
   fit: Fit;
   /** Whether the viewer/host wants playback to run (survives ad breaks and buffering). */

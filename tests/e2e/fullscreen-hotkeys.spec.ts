@@ -70,13 +70,18 @@ test('browser fullscreen: a request without user activation is rejected and not 
   }
 });
 
-test('browser fullscreen via the prebuilt control and Escape/exit is tracked from real events', async ({ page }) => {
+test('browser fullscreen via the player control and Escape/exit is tracked from real events', async ({ page }) => {
   await mount(page, { source });
   await waitForReady(page);
   await page.locator('#app .rsp-root').hover();
-  await page.locator('.art-control-rsp-fullscreen').click();
+  const button = page.locator('#app .rsp-fullscreen-button');
+  await expect(button).toHaveAttribute('aria-label', 'Fullscreen');
+  await button.click();
   await page.waitForFunction(() => window.__h.ref().getState().fullscreen.active === true, null, { timeout: 5000 });
-  expect(await page.evaluate(() => document.fullscreenElement?.classList.contains('art-video-player'))).toBe(true);
+  // The fullscreen element contains the video, controls, captions and ad layers.
+  expect(await page.evaluate(() => document.fullscreenElement?.classList.contains('rsp-ui'))).toBe(true);
+  await expect(button).toHaveAttribute('aria-pressed', 'true');
+  await expect(button).toHaveAttribute('aria-label', 'Exit fullscreen');
   await page.evaluate(() => document.exitFullscreen());
   await page.waitForFunction(() => window.__h.ref().getState().fullscreen.active === false);
   expect((await events(page, 'fullscreenChange')).map((e) => e.payload.active)).toEqual([true, false]);
@@ -176,23 +181,52 @@ test.describe('keyboard shortcuts', () => {
     expect((await videoInfo(page)).paused).toBe(false);
   });
 
-  test('vendor controls are keyboard operable: settings menu opens with Enter and options are menuitemradio', async ({ page }) => {
-    const gear = page.locator('.art-control-setting');
-    await expect(gear).toHaveAttribute('role', 'button');
-    await expect(gear).toHaveAttribute('tabindex', '0');
+  test('controls are keyboard operable: settings menu (menu/menuitemradio), progress slider and buttons', async ({ page }) => {
+    const gear = page.locator('#app .rsp-settings-button');
+    await expect(gear).toHaveAttribute('aria-haspopup', 'menu');
     await gear.focus();
     await page.keyboard.press('Enter');
-    await expect(page.locator('.art-setting-panel.art-current')).toHaveAttribute('role', 'menu');
-    // Speed submenu via keyboard.
-    const focused = await page.evaluate(() => document.activeElement?.className);
-    expect(focused).toContain('art-setting-item');
+    const menu = page.locator('#app .rsp-settings-menu');
+    await expect(menu).toBeVisible();
+    await expect(menu).toHaveAttribute('role', 'menu');
+    await expect(gear).toHaveAttribute('aria-expanded', 'true');
+    expect(await page.evaluate(() => document.activeElement?.getAttribute('role'))).toBe('menuitem');
+    // Speed submenu via keyboard: focus lands on the checked option.
     await page.keyboard.press('Enter');
-    await expect(page.locator('.art-setting-panel.art-current .art-setting-item[role="menuitemradio"]').first()).toBeVisible();
+    await expect(menu.locator('[role="menuitemradio"]').first()).toBeVisible();
+    expect(await page.evaluate(() => document.activeElement?.getAttribute('aria-checked'))).toBe('true');
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('Enter');
+    await expect(menu).toBeHidden();
+    await expect(gear).toBeFocused();
+    await expect(gear).toHaveAttribute('aria-expanded', 'false');
+    expect((await videoInfo(page)).rate).toBe(1.5);
+    // Escape leaves a submenu first, then closes the menu.
+    await page.keyboard.press('Enter');
+    await page.keyboard.press('ArrowRight');
+    await expect(menu).not.toHaveAttribute('data-view', 'root');
     await page.keyboard.press('Escape');
-    await expect(page.locator('.art-video-player')).not.toHaveClass(/art-setting-show/);
-    const play = page.locator('.art-control-playAndPause');
+    await expect(menu).toHaveAttribute('data-view', 'root');
+    await page.keyboard.press('Escape');
+    await expect(menu).toBeHidden();
+    await expect(gear).toBeFocused();
+
+    // Progress slider: arrow keys seek by seekStep; the key never reaches the hotkeys.
+    const progress = page.locator('#app .rsp-progress');
+    await expect(progress).toHaveAttribute('role', 'slider');
+    await expect(progress).toHaveAttribute('aria-valuemax', /^(19|20)/);
+    await progress.focus();
+    await page.keyboard.press('ArrowRight');
+    await page.waitForFunction(() => (document.querySelector('#app video') as HTMLVideoElement).currentTime >= 9.9);
+    await expect(progress).toHaveAttribute('aria-valuetext', /^0:10 of 0:(19|20)$/);
+    await page.keyboard.press('Home');
+    await page.waitForFunction(() => (document.querySelector('#app video') as HTMLVideoElement).currentTime < 0.5);
+
+    const play = page.locator('#app .rsp-play');
+    await expect(play).toHaveAttribute('aria-label', 'Play');
     await play.focus();
     await page.keyboard.press('Enter');
     await waitForTime(page, 0.2);
+    await expect(play).toHaveAttribute('aria-label', 'Pause');
   });
 });

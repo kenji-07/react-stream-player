@@ -97,9 +97,16 @@ describe('public sample catalog', () => {
     const ttml = byName('Subtitles', 'TTML positioning');
     expect(ttml.config!.subtitles![0]!.src).toBe(ttml.raw.subtitle_uri);
     for (const e of catalog.filter((x) => x.config)) {
-      // Media URLs stay direct; only CORS-dependent subtitle files are rewritten.
-      expect(String((e.config!.source as { src?: unknown }).src ?? '')).toMatch(/^https:\/\//);
+      // Progressive files play without CORS and stay direct; adaptive
+      // manifests (fetched with CORS) on the CORS-less buckets are rewritten.
+      const source = e.config!.source as { src?: string; type?: string };
+      const src = String(source.src ?? '');
+      const adaptive = source.type === 'dash' || source.type === 'hls';
+      if (adaptive && /exoplayer-test-media-[01]\//.test(e.raw.uri ?? '')) expect(src, e.name).toBe(sameOrigin(e.raw.uri!));
+      else expect(src, e.name).toBe(e.raw.uri);
     }
+    const multi = byName('DASH - Multiple base URLs', 'DASH - Multiple base URLs');
+    expect((multi.config!.source as { src: string }).src).toBe('/sample-media/exoplayer-test-media-0/dash-multiple-base-urls/manifest.mpd');
   });
 
   it('status counts (update deliberately when the classification changes)', () => {

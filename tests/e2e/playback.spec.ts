@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { BASE, events, mount, mp4Variants, openHarness, resetLog, selectInSettings, serverLog, state, SUBS, videoInfo, waitForEvent, waitForReady, waitForTime } from './helpers';
+import { BASE, events, mount, mp4Variants, openHarness, resetLog, selectInSettings, serverLog, settingsOptions, state, SUBS, videoInfo, waitForEvent, waitForReady, waitForTime } from './helpers';
 
 test.beforeEach(async ({ page }) => {
   await openHarness(page);
@@ -35,26 +35,60 @@ test('defaults: volume 0.7, exact rate list, metadata preload, playsinline, cont
     return { preload: v.preload, playsInline: v.playsInline, fit: getComputedStyle(v).objectFit, pos: getComputedStyle(v).objectPosition, volume: v.volume };
   });
   expect(attrs).toEqual({ preload: 'metadata', playsInline: true, fit: 'contain', pos: '50% 50%', volume: 0.7 });
-  // Speed menu lists exactly the configured rates with exact labels (not Artplayer's toFixed(1)).
-  await page.locator('.art-control-setting').first().click();
-  await page.locator('.art-setting-panel.art-current .art-setting-item-left-text').getByText('Speed', { exact: true }).click();
-  const labels = await page.locator('.art-setting-panel.art-current .art-setting-item:not(.art-setting-item-back) .art-setting-item-left-text').allTextContents();
-  expect(labels).toEqual(['0.5×', '0.75×', 'Normal', '1.25×', '1.5×', '2×']);
+  // Speed menu lists exactly the configured rates with exact labels.
+  expect(await settingsOptions(page, 'Speed')).toEqual(['0.5×', '0.75×', 'Normal', '1.25×', '1.5×', '2×']);
 });
 
-test('vendor volume persistence is disabled: a cached Artplayer volume never overrides the default', async ({ page }) => {
-  await page.evaluate(() => localStorage.setItem('artplayer_settings', JSON.stringify({ volume: 0.11, times: { x: 99 } })));
+test('volume controls route through the controller: mute button, keyboard and pointer slider, controlled volume; no browser storage', async ({ page }) => {
+  await page.evaluate(() => {
+    localStorage.clear();
+    sessionStorage.clear();
+  });
   await mount(page, { source: { src: `${BASE}/fixtures/mp4/vod-360p.mp4`, type: 'mp4' } });
   await waitForReady(page);
-  expect((await videoInfo(page)).volume).toBe(0.7);
-  await page.evaluate(() => window.__h.ref().setVolume(0.33));
-  // Use Artplayer's own volume API too: it must not write storage.
-  await page.evaluate(() => {
-    localStorage.removeItem('artplayer_settings');
-  });
-  await page.locator('.art-control-volume').first().hover();
-  await page.evaluate(() => window.__h.ref().setVolume(0.44));
-  expect(await page.evaluate(() => localStorage.getItem('artplayer_settings'))).toBeNull();
+  const mute = page.locator('#app .rsp-mute');
+  const slider = page.locator('#app .rsp-volume');
+  const volume = async () => (await videoInfo(page)).volume;
+  await expect(mute).toHaveAttribute('aria-label', 'Mute');
+  await mute.click();
+  expect((await videoInfo(page)).muted).toBe(true);
+  await expect(mute).toHaveAttribute('aria-label', 'Unmute');
+  await expect(mute).toHaveAttribute('aria-pressed', 'true');
+  await expect(slider).toHaveAttribute('aria-valuenow', '0');
+  await mute.click();
+  expect((await videoInfo(page)).muted).toBe(false);
+
+  // Keyboard: the slider owns its arrow keys (the volume hotkeys do not also fire).
+  await expect(slider).toHaveAttribute('role', 'slider');
+  await expect(slider).toHaveAttribute('aria-valuetext', '70%');
+  await slider.focus();
+  await page.keyboard.press('ArrowDown');
+  await expect.poll(volume).toBeCloseTo(0.65, 5);
+  await page.keyboard.press('Home');
+  await expect.poll(volume).toBe(0);
+  await expect(mute).toHaveAttribute('aria-label', 'Unmute');
+  // "Unmute" at volume 0 restores the last audible level.
+  await mute.click();
+  await expect.poll(volume).toBeCloseTo(0.65, 5);
+
+  // Pointer: the slider opens on hover; a click sets the level under the pointer.
+  await page.locator('#app .rsp-volume-group').hover();
+  await expect.poll(async () => (await slider.boundingBox())?.width ?? 0).toBeGreaterThan(60);
+  const box = (await slider.boundingBox())!;
+  await page.mouse.click(box.x + box.width * 0.25, box.y + box.height / 2);
+  await expect.poll(volume).toBeCloseTo(0.25, 1);
+
+  // Controlled volume: the control reports the request, the host decides.
+  await page.evaluate(() => window.__h.update({ volume: 0.2 }));
+  await expect.poll(volume).toBeCloseTo(0.2, 5);
+  await slider.focus();
+  await page.keyboard.press('ArrowUp');
+  await expect.poll(async () => (await events(page, 'volumeChange')).at(-1)?.payload).toBeCloseTo(0.25, 5);
+  await page.waitForTimeout(300);
+  expect(await volume()).toBeCloseTo(0.2, 5);
+  await expect(slider).toHaveAttribute('aria-valuetext', '20%');
+
+  expect(await page.evaluate(() => localStorage.length + sessionStorage.length)).toBe(0);
 });
 
 test('per-instance isolation: two players keep independent volume/rate/quality', async ({ page }) => {
@@ -72,7 +106,7 @@ test('per-instance isolation: two players keep independent volume/rate/quality',
   expect(await page.evaluate(() => document.querySelectorAll('video').length)).toBe(1);
 });
 
-test('MP4 quality variants: only the selected file loads; switching via the Artplayer menu keeps time, playing state, rate, volume and captions', async ({ page }) => {
+test('MP4 quality variants: only the selected file loads; switching via the settings menu keeps time, playing state, rate, volume and captions', async ({ page }) => {
   await mount(page, {
     source: { id: 'movie-1', type: 'mp4', variants: mp4Variants() },
     defaultQuality: '360p',

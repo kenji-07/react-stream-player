@@ -44,9 +44,15 @@ for (const protocol of ['hls', 'dash'] as const) {
     expect(s.live.seekableRange.end - s.live.seekableRange.start).toBeGreaterThan(6);
     expect(s.live.atLiveEdge).toBe(true);
     expect((await events(page, 'liveStateChange')).length).toBeGreaterThan(0);
-    // Prebuilt UI: LIVE control shown, VOD progress/time hidden.
-    await expect(page.locator('.art-control-rsp-live')).toBeVisible();
-    await expect(page.locator('.art-control-progress')).toBeHidden();
+    // Player UI: LIVE indicator (inactive at the edge), a DVR slider over the
+    // seekable window, and no VOD time readout.
+    const liveButton = page.locator('#app .rsp-live-button');
+    const progress = page.locator('#app .rsp-progress');
+    await expect(liveButton).toBeVisible();
+    await expect(liveButton).toBeDisabled();
+    await expect(page.locator('#app .rsp-time')).toBeHidden();
+    await expect(progress).toBeVisible();
+    await expect(progress).toHaveAttribute('aria-valuetext', 'LIVE');
     // Seek back inside the DVR window.
     await page.evaluate(() => {
       const r = window.__h.ref().getState().live.seekableRange;
@@ -56,12 +62,17 @@ for (const protocol of ['hls', 'dash'] as const) {
     s = await state(page);
     expect(s.live.atLiveEdge).toBe(false);
     expect(s.live.behindLiveEdge).toBeGreaterThan(3);
+    await expect(liveButton).toBeEnabled();
+    await expect(liveButton).toHaveAttribute('aria-label', /^Go to live/);
+    await expect(progress).toHaveAttribute('aria-valuetext', /behind live$/);
     // Seeks before the window are clamped into it.
     await page.evaluate(() => window.__h.ref().seekTo(0));
     const clamped = await page.evaluate(() => ({ t: (document.querySelector('#app video') as HTMLVideoElement).currentTime, r: window.__h.ref().getState().live.seekableRange }));
     expect(clamped.t).toBeGreaterThanOrEqual(clamped.r.start - 0.5);
-    await page.evaluate(() => window.__h.ref().seekToLive());
+    // The LIVE control returns to the edge.
+    await liveButton.click();
     await page.waitForFunction(() => window.__h.ref().getState().live.atLiveEdge, null, { timeout: 10_000 });
+    await expect(liveButton).toBeDisabled();
     // percent hotkeys use the seekable window, not Infinity.
     await page.locator('#app .rsp-root').focus();
     await page.keyboard.press('0');

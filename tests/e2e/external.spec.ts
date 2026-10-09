@@ -56,7 +56,7 @@ test('external: real IMA VAST tag plays an ad then content', async ({ page }) =>
   test.skip(!adTagUrl, 'RSP_FIXTURE_IMA_VAST_URL not set — real IMA playback stays externally-unverified');
   await mount(page, { source: { src: '/fixtures/mp4/vod-360p.mp4', type: 'mp4' }, ads: { vast: { adTagUrl } } });
   await waitForReady(page);
-  await page.locator('#app .art-video-player .art-state').click();
+  await page.locator('#app .rsp-big-play').click();
   await page.waitForFunction(() => window.__h.events.some((e: { name: string }) => e.name === 'adStart' || e.name === 'adError'), null, { timeout: 30_000 });
   const adError = await page.evaluate(() => window.__h.events.find((e: { name: string }) => e.name === 'adError')?.payload ?? null);
   test.skip(adError !== null, `IMA reported ${JSON.stringify(adError)} (network/ad-server availability) — not counted as evidence`);

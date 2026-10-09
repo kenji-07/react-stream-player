@@ -355,5 +355,4 @@ export interface LiveConfig {
 
 export type Fit = 'contain' | 'cover' | 'fill' | 'none' | 'scale-down';
 export type Layout = 'standard' | 'reel';
-export type UiMode = 'artplayer' | 'native';
 export type Locale = 'en' | 'mn';

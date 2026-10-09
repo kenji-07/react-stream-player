@@ -82,16 +82,17 @@ test('without an id, a genuinely changed URL is new content', async ({ page }) =
   expect((await state(page)).contentSessionId).not.toBe(s1);
 });
 
-test('React Strict Mode: one video, one Artplayer, one Shaka engine, one ready event', async ({ page }) => {
+test('React Strict Mode: one video, one control layer, one Shaka engine, one ready event', async ({ page }) => {
   await mount(page, { source: { src: `${BASE}/fixtures/hls/master.m3u8` } }, { strict: true });
   await waitForReady(page);
   await page.waitForTimeout(500);
   const counts = await page.evaluate(() => ({
     videos: document.querySelectorAll('#app video').length,
-    players: document.querySelectorAll('#app .art-video-player').length,
+    players: document.querySelectorAll('#app .rsp-ui').length,
+    controls: document.querySelectorAll('#app .rsp-controls').length,
     textLayers: document.querySelectorAll('#app .rsp-text-layer').length,
   }));
-  expect(counts).toEqual({ videos: 1, players: 1, textLayers: 1 });
+  expect(counts).toEqual({ videos: 1, players: 1, controls: 1, textLayers: 1 });
   expect((await events(page, 'ready')).length).toBe(1);
   expect((await events(page, 'loadStart')).filter((e) => e.payload.reason === 'initial').length).toBe(1);
   const manifests = (await serverLog()).filter((r) => r.path.endsWith('master.m3u8'));
@@ -205,7 +206,7 @@ test('a viewer loop toggle survives unrelated rerenders and yields to a loop pro
   await waitForReady(page);
   const box = (await page.locator('#app .rsp-root').boundingBox())!;
   await page.mouse.click(box.x + box.width / 2, box.y + box.height / 3, { button: 'right' });
-  await page.locator('.art-contextmenu', { hasText: 'Loop' }).click();
+  await page.locator('#app .rsp-context-item', { hasText: 'Loop' }).click();
   expect(await page.evaluate(() => (document.querySelector('#app video') as HTMLVideoElement).loop)).toBe(true);
   await page.evaluate(() => window.__h.rerender());
   await page.evaluate(() => window.__h.update({ title: 'Unrelated change' }));

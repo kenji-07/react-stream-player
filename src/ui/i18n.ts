@@ -38,6 +38,18 @@ export interface Translations {
   diagnosticsCopied: string;
   cast: string;
   airplay: string;
+  stopCasting: string;
+  controls: string;
+  seek: string;
+  volume: string;
+  mute: string;
+  unmute: string;
+  settings: string;
+  back: string;
+  replay: string;
+  exitPictureInPicture: string;
+  timeOf: string; // "{current}" and "{duration}" placeholders
+  menu: string;
   errorTitle: string;
   errors: Record<PlayerErrorCategory, string>;
   unknownLanguage: string;
@@ -79,6 +91,18 @@ export const en: Translations = {
   diagnosticsCopied: 'Diagnostics copied',
   cast: 'Cast',
   airplay: 'AirPlay',
+  stopCasting: 'Stop casting',
+  controls: 'Player controls',
+  seek: 'Seek',
+  volume: 'Volume',
+  mute: 'Mute',
+  unmute: 'Unmute',
+  settings: 'Settings',
+  back: 'Back',
+  replay: 'Replay',
+  exitPictureInPicture: 'Exit picture-in-picture',
+  timeOf: '{current} of {duration}',
+  menu: 'Player menu',
   errorTitle: 'Playback error',
   errors: {
     network: 'A network problem interrupted playback. Check your connection and try again.',
@@ -136,6 +160,18 @@ export const mn: Translations = {
   diagnosticsCopied: 'Оношилгоог хууллаа',
   cast: 'Дамжуулах',
   airplay: 'AirPlay',
+  stopCasting: 'Дамжуулалтыг зогсоох',
+  controls: 'Тоглуулагчийн удирдлага',
+  seek: 'Байрлал сонгох',
+  volume: 'Дууны түвшин',
+  mute: 'Дууг хаах',
+  unmute: 'Дууг нээх',
+  settings: 'Тохиргоо',
+  back: 'Буцах',
+  replay: 'Дахин тоглуулах',
+  exitPictureInPicture: 'Зураг доторх зургаас гарах',
+  timeOf: '{duration}-с {current}',
+  menu: 'Тоглуулагчийн цэс',
   errorTitle: 'Тоглуулахад алдаа гарлаа',
   errors: {
     network: 'Сүлжээний асуудлаас болж тоглуулалт тасарлаа. Холболтоо шалгаад дахин оролдоно уу.',

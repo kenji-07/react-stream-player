@@ -5,7 +5,7 @@ export interface HotkeyConfig {
   bindings: Record<string, HotkeyAction>;
 }
 
-const INTERACTIVE_SELECTOR = 'input, textarea, select, [contenteditable=""], [contenteditable="true"], [role="textbox"], [role="slider"], [role="spinbutton"], [role="combobox"], [role="listbox"], [role="menu"], [role="menuitem"], [role="menuitemradio"]';
+const INTERACTIVE_SELECTOR = 'input, textarea, select, [contenteditable=""], [contenteditable="true"], [role="textbox"], [role="slider"], [role="spinbutton"], [role="combobox"], [role="listbox"], [role="menu"], [role="menuitem"], [role="menuitemradio"], [role="menuitemcheckbox"]';
 /** Keys that activate a focused button; they must keep their native meaning there. */
 const BUTTON_KEYS = new Set([' ', 'Enter']);
 

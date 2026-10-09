@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Builds dist/: unbundled ESM + declarations + source maps (tsc) and the CSS
 // file. Unbundled output keeps per-module `"use client"` directives and lets
-// consumer bundlers split the lazily imported Shaka/Artplayer/IMA paths.
+// consumer bundlers split the lazily imported Shaka/IMA/Cast paths.
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';

@@ -24,7 +24,6 @@ describe('defaults (spec defaults table)', () => {
     ['autoplay', resolved.autoplay, { enabled: false, mutedFallback: true }],
     ['loop', resolved.loop, false],
     ['playsInline', resolved.playsInline, true],
-    ['ui', resolved.ui, 'artplayer'],
     ['layout', resolved.layout, 'standard'],
     ['locale', resolved.locale, 'en'],
     ['motion', resolved.motion, { enabled: true, durationMs: 200, easing: 'ease', reducedMotion: 'system' }],
