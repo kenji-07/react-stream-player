@@ -155,7 +155,12 @@ export interface NetworkConfig {
    * allowlist after redirects. `"error"` (default) fails the request.
    */
   credentialedRedirect?: 'error' | 'allow';
-  /** CORS mode for the native `<video>` element. Default `"anonymous"` when credentials are not needed. */
+  /**
+   * `crossorigin` attribute of the `<video>` element (native MP4 and `<track>`
+   * subtitles). Default: not set (media plays from any origin, but
+   * cross-origin frames cannot be captured and cross-origin `<track>` files
+   * are blocked). Use `"anonymous"` when the media origin sends CORS headers.
+   */
   crossOrigin?: 'anonymous' | 'use-credentials' | null;
   /** Automatic reload attempts after a fatal network/source error. Default 1, maximum 5. */
   fatalRetryLimit?: number;

@@ -248,7 +248,7 @@ fields, sliders and menus, during IME composition, and with Ctrl/Alt/Meta.
 | Space, K | Play / pause (Space keeps its button meaning on focused buttons) |
 | ← / J, → / L | Seek −/+ `seekStep` |
 | ↑ / ↓ | Volume ± 5 % |
-| Home / End | Start / end (VOD) or live edge |
+| Home / End | Start / end (VOD); DVR window start / live edge (live) |
 | 0–9 | Seek to 0–90 % |
 | F | Toggle fullscreen (`fullscreen.mode`) |
 | M | Mute |

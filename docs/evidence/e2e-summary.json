@@ -1,0 +1,87 @@
+{
+  "date": "2026-10-09T17:55:48.907Z",
+  "browser": "Chromium 141.0.7390.37 (headless), Playwright 1.56.1, Linux x64",
+  "stats": {
+    "startTime": "2026-10-09T17:51:45.535Z",
+    "duration": 233489.036,
+    "expected": 103,
+    "skipped": 6,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "specs": {
+    "ads.spec.ts": {
+      "passed": 10,
+      "failed": 0,
+      "skipped": 0
+    },
+    "autoplay-policy.spec.ts": {
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0
+    },
+    "cast.spec.ts": {
+      "passed": 6,
+      "failed": 0,
+      "skipped": 0
+    },
+    "drm.spec.ts": {
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0
+    },
+    "errors-blob.spec.ts": {
+      "passed": 12,
+      "failed": 0,
+      "skipped": 0
+    },
+    "external.spec.ts": {
+      "passed": 0,
+      "failed": 0,
+      "skipped": 6,
+      "skipReasons": [
+        "RSP_FIXTURE_WIDEVINE_DASH_URL/RSP_FIXTURE_WIDEVINE_LICENSE_URL not set — Widevine DASH stays externally-unverified",
+        "RSP_FIXTURE_PLAYREADY_DASH_URL/RSP_FIXTURE_PLAYREADY_LICENSE_URL not set — PlayReady DASH stays externally-unverified",
+        "RSP_FIXTURE_FAIRPLAY_HLS_URL/RSP_FIXTURE_FAIRPLAY_LICENSE_URL not set — FairPlay HLS stays externally-unverified",
+        "RSP_FIXTURE_IMA_VAST_URL not set — real IMA playback stays externally-unverified",
+        "RSP_FIXTURE_LL_HLS_URL not set — LL-HLS stays externally-unverified",
+        "RSP_FIXTURE_LL_DASH_URL not set — LL-DASH stays externally-unverified"
+      ]
+    },
+    "fullscreen-hotkeys.spec.ts": {
+      "passed": 10,
+      "failed": 0,
+      "skipped": 0
+    },
+    "identity.spec.ts": {
+      "passed": 12,
+      "failed": 0,
+      "skipped": 0
+    },
+    "layout-session.spec.ts": {
+      "passed": 11,
+      "failed": 0,
+      "skipped": 0
+    },
+    "live.spec.ts": {
+      "passed": 7,
+      "failed": 0,
+      "skipped": 0
+    },
+    "playback.spec.ts": {
+      "passed": 11,
+      "failed": 0,
+      "skipped": 0
+    },
+    "security.spec.ts": {
+      "passed": 9,
+      "failed": 0,
+      "skipped": 0
+    },
+    "vast.spec.ts": {
+      "passed": 8,
+      "failed": 0,
+      "skipped": 0
+    }
+  }
+}

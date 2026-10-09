@@ -35,6 +35,38 @@ test.describe('layout, fit, motion and accessibility', () => {
     expect(control!.height).toBeGreaterThanOrEqual(44);
   });
 
+  test('every fit value applies to the <video> element in standard and Reel layouts without reloading', async ({ page }) => {
+    await mount(page, { source: { src: `${BASE}/fixtures/mp4/vod-216p.mp4`, type: 'mp4' } });
+    await waitForReady(page);
+    for (const layout of ['standard', 'reel']) {
+      for (const fit of ['contain', 'cover', 'fill', 'none', 'scale-down']) {
+        await page.evaluate(({ layout, fit }) => window.__h.update({ layout, fit }), { layout, fit });
+        const m = await page.evaluate(() => {
+          const root = document.querySelector('#app .rsp-root') as HTMLElement;
+          const r = root.getBoundingClientRect();
+          return { fit: getComputedStyle(document.querySelector('#app video')!).objectFit, ratio: r.width / r.height };
+        });
+        expect(m.fit).toBe(fit);
+        expect(m.ratio).toBeCloseTo(layout === 'reel' ? 9 / 16 : 16 / 9, 2);
+      }
+    }
+    expect((await events(page, 'loadStart')).length).toBe(1);
+  });
+
+  test('watermark: inert host text, non-interactive, optional movement, live updates without reload', async ({ page }) => {
+    await mount(page, { source: { src: `${BASE}/fixtures/mp4/vod-216p.mp4`, type: 'mp4' }, watermark: { text: '<b>viewer-42</b>', opacity: 0.5, position: 'bottom-left', moveIntervalMs: 1000 } });
+    await waitForReady(page);
+    const mark = page.locator('#app .rsp-watermark');
+    await expect(mark).toHaveText('<b>viewer-42</b>');
+    expect(await page.locator('#app .rsp-watermark b').count()).toBe(0);
+    const style = await mark.evaluate((el) => ({ opacity: getComputedStyle(el).opacity, events: getComputedStyle(el.parentElement!).pointerEvents, position: (el as HTMLElement).dataset.position }));
+    expect(style).toEqual({ opacity: '0.5', events: 'none', position: 'bottom-left' });
+    await expect.poll(() => mark.evaluate((el) => (el as HTMLElement).dataset.position), { timeout: 3000 }).not.toBe('bottom-left');
+    await page.evaluate(() => window.__h.update({ watermark: undefined }));
+    expect(await page.locator('#app .rsp-watermark').count()).toBe(0);
+    expect((await events(page, 'loadStart')).length).toBe(1);
+  });
+
   test('captions follow subtitleStyle and stay above the control bar', async ({ page }) => {
     await mount(page, {
       source: { src: `${BASE}/fixtures/mp4/vod-360p.mp4`, type: 'mp4' },

@@ -35,10 +35,21 @@ It has not been published to npm.
   bases (`timeBase: "session"`).
 - Browser and web fullscreen, hotkeys, context menu, en/mn localization,
   reduced motion, loading/error UI with retry, Blob/object-URL ownership,
-  `captureFrame()`, Picture-in-Picture, AirPlay and Cast sender hooks, opt-in
-  Media Session.
+  `captureFrame()`, Picture-in-Picture, AirPlay, a Cast sender
+  (`startCasting()`/`stopCasting()`, UI control, explicit rejection reasons)
+  and opt-in Media Session.
 - Credential rules scoped to exact origins and request types, redirect
   blocking, license token/transform hooks, redaction of URLs and secrets in
   errors and diagnostics.
 - Unit, type-level, browser (Playwright) and packed-artifact consumer tests;
   reproducible fixture inventory; integration prototype gate.
+- Examples: Next.js App Router gallery with every documented usage example,
+  and a Cast custom receiver (externally unverified).
+
+### Known limitations
+
+- Externally unverified: iPhone/Safari, Widevine, PlayReady, FairPlay, real
+  IMA ad serving, Cast devices and receivers, AirPlay, PiP windows, and true
+  LL-HLS/LL-DASH. See `docs/release-checklist.md`.
+- Artplayer injects an inline stylesheet, so a strict `style-src` CSP must
+  allow it.
