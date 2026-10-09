@@ -21,7 +21,7 @@ export function Fullscreen() {
 
   return (
     <>
-      <Player ref={ref} source={{ src: media.mp4.p360, type: 'mp4' }} fullscreen={{ mode: 'web', fallbackToWeb: true }} onFullscreenChange={setState} />
+      <Player ref={ref} source={{ src: media.progressive, type: 'mp4' }} fullscreen={{ mode: 'web', fallbackToWeb: true }} onFullscreenChange={setState} />
       <div className="example-controls">
         <button type="button" onClick={() => request('browser')}>
           Browser fullscreen

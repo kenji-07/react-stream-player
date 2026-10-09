@@ -22,7 +22,8 @@
       "react-stream-player/styles.css": [
         "../src/styles.css"
       ]
-    }
+    },
+    "resolveJsonModule": true
   },
   "include": [
     "unit",

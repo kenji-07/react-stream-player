@@ -31,7 +31,7 @@ export function CaptureFrame() {
 
   return (
     <>
-      <Player ref={ref} source={{ src: media.mp4.p360, type: 'mp4' }} network={{ crossOrigin: 'anonymous' }} />
+      <Player ref={ref} source={{ src: media.progressiveSameOrigin, type: 'mp4' }} network={{ crossOrigin: 'anonymous' }} />
       <div className="example-controls">
         <button type="button" onClick={() => void capture()}>
           Capture frame

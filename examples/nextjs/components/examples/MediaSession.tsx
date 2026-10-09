@@ -10,12 +10,12 @@ import { media } from '../media';
 export function MediaSession() {
   return (
     <Player
-      source={{ src: media.mp4.p360, type: 'mp4' }}
+      source={{ src: media.progressive, type: 'mp4' }}
       mediaSession={{
         enabled: true,
         title: 'Example video',
         artist: 'Example publisher',
-        artwork: [{ src: media.poster, sizes: '640x360', type: 'image/png' }],
+        artwork: [{ src: media.poster, type: media.posterType }],
       }}
     />
   );

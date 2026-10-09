@@ -15,7 +15,7 @@ export function ControlledState() {
   return (
     <>
       <Player
-        source={{ src: media.mp4.p360, type: 'mp4' }}
+        source={{ src: media.progressive, type: 'mp4' }}
         volume={volume}
         onVolumeChange={setVolume}
         muted={muted}

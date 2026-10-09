@@ -201,6 +201,7 @@ examples are in [examples/nextjs/components/examples](examples/nextjs/components
 | Media Session | [MediaSession.tsx](examples/nextjs/components/examples/MediaSession.tsx) |
 | Framework-independent `createPlayer` | [CoreApi.tsx](examples/nextjs/components/examples/CoreApi.tsx) |
 | Cast custom receiver | [examples/cast-receiver](examples/cast-receiver) |
+| 128 public test streams (DASH, HLS, Widevine, IMA, AV1, subtitles, …), each classified and playable where supported | [`/samples` page of the Next.js example](examples/nextjs/README.md#public-sample-streams-samples) |
 
 ## Defaults
 

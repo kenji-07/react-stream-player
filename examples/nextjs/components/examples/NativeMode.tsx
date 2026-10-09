@@ -16,8 +16,8 @@ export function NativeMode() {
       <Player
         ref={ref}
         ui="native"
-        source={{ src: media.mp4.p360, type: 'mp4' }}
-        subtitles={[{ id: 'en', src: media.subs.en, label: 'English', language: 'en' }]}
+        source={{ src: media.progressive, type: 'mp4' }}
+        subtitles={media.subtitles}
         onReady={() => setCaps(ref.current?.getCapabilities() ?? null)}
       />
       {caps ? (

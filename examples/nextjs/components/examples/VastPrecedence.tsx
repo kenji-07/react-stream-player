@@ -10,7 +10,7 @@ export function VastPrecedence() {
   const adTagUrl = media.vastTag ?? 'https://ads.example.com/vast';
   return (
     <Player
-      source={{ src: media.mp4.p360, type: 'mp4' }}
+      source={{ src: media.progressive, type: 'mp4' }}
       ads={{
         enabled: true,
         vast: { adTagUrl, requestTimeoutMs: 10000 },

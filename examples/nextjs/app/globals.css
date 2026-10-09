@@ -26,3 +26,45 @@ nav button[aria-pressed='true'] {
   gap: 8px;
   margin: 12px 0;
 }
+
+.sample-list {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+.sample-badge {
+  border-radius: 4px;
+  font-size: 12px;
+  padding: 1px 6px;
+  white-space: nowrap;
+}
+.sample-badge-playable {
+  background: #d9f2df;
+  color: #12501f;
+}
+.sample-badge-codec-dependent {
+  background: #fdf0c8;
+  color: #5c4500;
+}
+.sample-badge-drm {
+  background: #dde7fb;
+  color: #17366e;
+}
+.sample-badge-expected-error {
+  background: #fde2cf;
+  color: #6b2c00;
+}
+.sample-badge-unsupported {
+  background: #e7e7e7;
+  color: #3d3d3d;
+}
+.sample-details {
+  border-top: 1px solid #8884;
+  margin-top: 16px;
+  padding-top: 8px;
+}
+.sample-uri code {
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}

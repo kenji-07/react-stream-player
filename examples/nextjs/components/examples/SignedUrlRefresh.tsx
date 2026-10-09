@@ -14,13 +14,13 @@ function signedUrl(path: string): string {
 }
 
 export function SignedUrlRefresh() {
-  const [src, setSrc] = useState(() => signedUrl(media.mp4.p360));
+  const [src, setSrc] = useState(() => signedUrl(media.progressive));
   const [refreshes, setRefreshes] = useState(0);
 
   useEffect(() => {
     // Refresh well before expiry.
     const timer = setInterval(() => {
-      setSrc(signedUrl(media.mp4.p360));
+      setSrc(signedUrl(media.progressive));
       setRefreshes((n) => n + 1);
     }, 15_000);
     return () => clearInterval(timer);

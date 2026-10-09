@@ -328,7 +328,10 @@ async function next(tarball) {
   writeJson(path.join(dir, 'package.json'), pkg);
   run('npm', ['install', '--no-audit', '--no-fund', '--loglevel=error'], dir);
   copyFixtures(path.join(dir, 'public/media'));
-  const buildLog = run(process.execPath, [path.join(dir, 'node_modules/next/dist/bin/next'), 'build'], dir, { env: { ...process.env, NEXT_TELEMETRY_DISABLED: '1' } });
+  // Local fixtures: the smoke test must not depend on third-party sample hosts.
+  const buildLog = run(process.execPath, [path.join(dir, 'node_modules/next/dist/bin/next'), 'build'], dir, {
+    env: { ...process.env, NEXT_TELEMETRY_DISABLED: '1', NEXT_PUBLIC_RSP_MEDIA: 'local' },
+  });
   const port = 4191;
   // Own process group: `next start` forks next-server, which must not outlive the check.
   const server = spawn(process.execPath, [path.join(dir, 'node_modules/next/dist/bin/next'), 'start', '-p', String(port), '-H', '127.0.0.1'], {
@@ -394,6 +397,18 @@ async function next(tarball) {
     runtime.hls = { shakaLoaded: loaded(scripts, SHAKA_SIGNATURE), videos: await page.evaluate(() => document.querySelectorAll('video').length) };
     assert(runtime.hls.shakaLoaded, 'Next: HLS example did not load Shaka');
     assert(runtime.hls.videos === 1, 'Next: previous player not cleaned up');
+    // Public sample browser: renders and classifies every sample (no third-party playback here).
+    await page.goto(`${base}/samples`);
+    await page.waitForSelector('nav[aria-label="Sample categories"] button');
+    const categories = await page.locator('nav[aria-label="Sample categories"] button').count();
+    const summary = (await page.locator('.samples > .example-note').first().textContent()) ?? '';
+    await page.getByRole('button', { name: /^Playlists \(/ }).click();
+    await page.locator('.sample-list button').first().click();
+    const reason = (await page.locator('.sample-details li').first().textContent()) ?? '';
+    const videosOnSamples = await page.evaluate(() => document.querySelectorAll('video').length);
+    runtime.samples = { categories, summary: summary.trim(), unsupportedReason: reason, videos: videosOnSamples };
+    assert(categories === 18 && summary.includes('128 samples'), `Next: sample browser summary ${JSON.stringify(runtime.samples)}`);
+    assert(/Playlists are out of scope/.test(reason) && videosOnSamples === 0, 'Next: unsupported samples must show a reason and create no player');
     const hydration = errors.filter((e) => /hydrat|did not match/i.test(e));
     runtime.consoleErrors = errors;
     assert(hydration.length === 0, `Next: hydration errors ${JSON.stringify(hydration)}`);

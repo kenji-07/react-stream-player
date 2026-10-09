@@ -11,8 +11,8 @@ export function CoreApi() {
 
   useEffect(() => {
     if (!root.current) return;
-    const player: PlayerHandle = createPlayer(root.current, { source: { src: media.mp4.p216, type: 'mp4' } }, { onReady: (info) => console.info('ready', info) });
-    const timer = setTimeout(() => player.update({ source: { src: media.mp4.p216, type: 'mp4' }, fit: 'cover' }), 3000);
+    const player: PlayerHandle = createPlayer(root.current, { source: { src: media.progressive, type: 'mp4' } }, { onReady: (info) => console.info('ready', info) });
+    const timer = setTimeout(() => player.update({ source: { src: media.progressive, type: 'mp4' }, fit: 'cover' }), 3000);
     return () => {
       clearTimeout(timer);
       void player.destroy();

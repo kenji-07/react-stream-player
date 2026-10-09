@@ -19,8 +19,8 @@ export function InlineRerender() {
   return (
     <>
       <Player
-        source={{ id: 'movie-1', src: media.mp4.p360, type: 'mp4' }}
-        subtitles={[{ id: 'en', src: media.subs.en, label: 'English', language: 'en' }]}
+        source={{ id: 'movie-1', src: media.progressive, type: 'mp4' }}
+        subtitles={[media.subtitles[0]!]}
         subtitleStyle={{ fontSize: '20px' }}
         streaming={{ bufferingGoal: 30 }}
         onLoadStart={() => setLoads((n) => n + 1)}
