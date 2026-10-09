@@ -157,6 +157,11 @@ export class CastManager {
     }
   }
 
+  /** Replaces the configuration (latest callbacks) without re-initialising the SDK. */
+  setConfig(config: CastConfig): void {
+    this.config = config;
+  }
+
   get available(): boolean {
     return this.status !== 'unavailable';
   }
@@ -188,6 +193,16 @@ export class CastManager {
     } catch (error) {
       throw playerError('cast-error', 'cast', { cause: error });
     }
+  }
+
+  /** Ends the remote session this player started (local playback resumes per `resumeLocalOnDisconnect`). */
+  stop(): void {
+    if (!this.ownsSession) return;
+    this.context?.getCurrentSession()?.endSession(true);
+  }
+
+  get connected(): boolean {
+    return this.status === 'connected';
   }
 
   private async handleSession(state: string | undefined): Promise<void> {

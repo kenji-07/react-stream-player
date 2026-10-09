@@ -32,6 +32,8 @@ export interface UiActions {
   toggleLoop(): void;
   toggleCaptions(): void;
   copyDiagnostics(): void;
+  /** Start casting, or stop when connected. */
+  toggleCast(): void;
   /** Synchronous hook for any user activation inside the player (IMA initialize). */
   userGesture(): void;
 }
@@ -70,6 +72,8 @@ export interface UiAdapter {
   setLoading(show: boolean): void;
   setFullscreen(state: { active: boolean; mode: FullscreenMode | null }): void;
   setAdActive(active: boolean): void;
+  /** Cast control: shown only while devices are available (`cast.enabled`). */
+  setCast(state: { available: boolean; connected: boolean }): void;
   setDuration(duration: number | null): void;
   notice(text: string): void;
   destroy(): void;

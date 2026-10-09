@@ -39,6 +39,14 @@ export interface PlayerRef {
   enterPictureInPicture(): Promise<void>;
   exitPictureInPicture(): Promise<void>;
   /**
+   * Opens the Cast device picker and casts the current content (requires
+   * `cast.enabled`). Rejects with `cast-unavailable`, or `cast-rejected` with
+   * `details.reason` when the content cannot be cast safely.
+   */
+  startCasting(): Promise<void>;
+  /** Ends a Cast session started by this player; local playback resumes. */
+  stopCasting(): Promise<void>;
+  /**
    * Captures the current content frame as a PNG Blob owned by the caller
    * (no object URL is created). Resolves `null` when no frame is available.
    * Rejects for protected (DRM) or cross-origin-tainted media.

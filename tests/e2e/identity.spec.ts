@@ -165,3 +165,52 @@ test('fit and layout changes do not reload or reset playback', async ({ page }) 
   expect((await events(page, 'loadStart')).length).toBe(1);
   expect((await videoInfo(page)).paused).toBe(false);
 });
+
+test('progressInterval changes apply at runtime without a reload', async ({ page }) => {
+  await mount(page, { source: { src: `${BASE}/fixtures/mp4/vod-360p.mp4`, type: 'mp4' }, progressInterval: 1000 });
+  await waitForReady(page);
+  await page.evaluate(() => window.__h.ref().play());
+  await waitForTime(page, 0.5);
+  await page.evaluate(() => window.__h.update({ progressInterval: 200 }));
+  const before = (await events(page, 'progress')).length;
+  await page.waitForTimeout(1300);
+  const during = (await events(page, 'progress')).length - before;
+  expect(during).toBeGreaterThanOrEqual(5);
+  expect((await events(page, 'loadStart')).length).toBe(1);
+});
+
+test('new callback identities with equal values are adopted (no stale closures) without a reload', async ({ page }) => {
+  await resetLog();
+  await page.evaluate((base) => {
+    const make = (tag: string) => ({
+      source: { id: 'hooks', src: `${base}/fixtures/hls/master.m3u8`, type: 'hls' },
+      network: { onRequest: (r: { headers: Record<string, string> }) => void (r.headers['X-Test-Header'] = tag) },
+    });
+    (window as unknown as { __make: typeof make }).__make = make;
+    window.__h.mount(make('one'));
+  }, BASE);
+  await waitForReady(page);
+  await page.evaluate(() => window.__h.ref().play());
+  await waitForTime(page, 1);
+  await page.evaluate(() => window.__h.update((window as unknown as { __make(tag: string): Record<string, unknown> }).__make('two')));
+  await resetLog();
+  await waitForTime(page, 5);
+  const tags = new Set((await serverLog()).filter((r) => r.path.includes('/fixtures/hls/')).map((r) => r.testHeader));
+  expect([...tags]).toEqual(['two']);
+  expect((await events(page, 'loadStart')).length).toBe(1);
+});
+
+test('a viewer loop toggle survives unrelated rerenders and yields to a loop prop change', async ({ page }) => {
+  await mount(page, { source: { src: `${BASE}/fixtures/mp4/vod-216p.mp4`, type: 'mp4' }, loop: false });
+  await waitForReady(page);
+  const box = (await page.locator('#app .rsp-root').boundingBox())!;
+  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 3, { button: 'right' });
+  await page.locator('.art-contextmenu', { hasText: 'Loop' }).click();
+  expect(await page.evaluate(() => (document.querySelector('#app video') as HTMLVideoElement).loop)).toBe(true);
+  await page.evaluate(() => window.__h.rerender());
+  await page.evaluate(() => window.__h.update({ title: 'Unrelated change' }));
+  expect(await page.evaluate(() => (document.querySelector('#app video') as HTMLVideoElement).loop)).toBe(true);
+  await page.evaluate(() => window.__h.update({ loop: true }));
+  await page.evaluate(() => window.__h.update({ loop: false }));
+  expect(await page.evaluate(() => (document.querySelector('#app video') as HTMLVideoElement).loop)).toBe(false);
+});

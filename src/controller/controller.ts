@@ -120,6 +120,8 @@ export class PlayerController {
   private sessionSeq = 0;
   private loadId = 0;
   private loadAbort: AbortController | null = null;
+  /** Viewer's context-menu loop toggle; cleared when the `loop` prop changes. */
+  private loopOverride: boolean | null = null;
   /** Selected progressive variant and switch sequencing (last selection wins). */
   private readonly progressive = new ProgressiveQualityState();
   private breakStartWaiters = new Set<() => void>();
@@ -289,10 +291,14 @@ export class PlayerController {
   private applyVideoPresentation(): void {
     this.video.style.objectFit = this.opts.fit;
     this.video.style.objectPosition = this.opts.objectPosition;
-    this.video.loop = this.opts.loop;
+    this.video.loop = this.loopEnabled();
     this.video.preload = this.opts.preload;
     this.video.playsInline = this.opts.playsInline;
     this.video.disablePictureInPicture = !this.opts.pictureInPicture;
+  }
+
+  private loopEnabled(): boolean {
+    return this.loopOverride ?? this.opts.loop;
   }
 
   private uiConfig(): UiConfig {
@@ -307,7 +313,7 @@ export class PlayerController {
       pictureInPicture: o.pictureInPicture,
       airplay: o.airplay,
       preventClickToggle: o.preventClickToggle,
-      loop: o.loop,
+      loop: this.loopEnabled(),
       seekStep: o.seekStep,
     };
   }
@@ -323,12 +329,17 @@ export class PlayerController {
       seekBy: (d) => void this.seekBy(d).catch(() => undefined),
       seekToLive: () => void this.seekToLive().catch(() => undefined),
       toggleLoop: () => {
-        this.opts = { ...this.opts, loop: !this.opts.loop };
+        // A viewer toggle lasts until the host changes the `loop` prop.
+        this.loopOverride = !this.loopEnabled();
         this.applyVideoPresentation();
         this.ui?.configure(this.uiConfig());
       },
       toggleCaptions: () => this.toggleCaptions(),
       copyDiagnostics: () => void this.copyDiagnostics(),
+      toggleCast: () => {
+        const action = this.state.cast.status === 'connected' ? this.stopCasting() : this.startCasting();
+        void action.catch((e) => this.reportNonFatal(e));
+      },
       userGesture: () => this.ads?.onUserGesture(),
     };
   }
@@ -396,6 +407,7 @@ export class PlayerController {
     if (this.opts.cast.enabled) this.ensureCast();
     this.ui.setFullscreen(this.state.fullscreen);
     this.ui.setAdActive(this.linearAdActive());
+    this.ui.setCast(this.castUiState());
     this.ui.setDuration(this.state.duration);
     this.refreshTracks();
     this.updateLiveState(true);
@@ -429,8 +441,18 @@ export class PlayerController {
     this.rawOptions = options;
     const prev = this.opts;
     const { resolved, issues } = resolveOptions(options);
-    if (semanticEqual(prev, resolved) && semanticEqual(prevRaw.source, options.source)) return;
+    if (semanticEqual(prev, resolved) && semanticEqual(prevRaw.source, options.source)) {
+      // Same values: no engine/UI work, but adopt the latest function
+      // references (license token, request hooks, header callbacks, cast
+      // custom data) so host callbacks never go stale.
+      this.opts = resolved;
+      this.credentialRules = normalizeCredentialRules(resolved.network.credentials).rules;
+      this.cast?.setConfig(resolved.cast);
+      return;
+    }
     this.opts = resolved;
+    if (prev.loop !== resolved.loop) this.loopOverride = null;
+    this.cast?.setConfig(resolved.cast);
     // Only report validation issues that are new.
     if (issues.length) {
       const prevIssues = resolveOptions(prevRaw).issues;
@@ -446,6 +468,7 @@ export class PlayerController {
     this.state.layout = resolved.layout;
     this.state.fit = resolved.fit;
     this.state.playbackRates = [...resolved.playbackRates];
+    if (prev.progressInterval !== resolved.progressInterval) this.startProgressTimer();
 
     // Controlled audio/rate values: apply when the host changes them.
     if (resolved.volume !== undefined && resolved.volume !== prev.volume) this.applyVolume(resolved.volume);
@@ -1169,8 +1192,14 @@ export class PlayerController {
       const handler = () => this.applyRootPresentation();
       this.listen(this.reducedMotionQuery, 'change', handler);
     }
-    this.progressTimer = setInterval(() => this.onProgressTick(), this.opts.progressInterval);
+    this.startProgressTimer();
     this.cueTimer = setInterval(() => this.onCueTick(), 250);
+  }
+
+  /** (Re)starts the `progress` event timer with the current `progressInterval`. */
+  private startProgressTimer(): void {
+    if (this.progressTimer !== null) clearInterval(this.progressTimer);
+    this.progressTimer = setInterval(() => this.onProgressTick(), this.opts.progressInterval);
   }
 
   private onProgressTick(): void {
@@ -1905,11 +1934,36 @@ export class PlayerController {
       },
       onStatus: (status, deviceName) => {
         this.state.cast = { status, deviceName };
+        this.ui?.setCast(this.castUiState());
         this.emit('castStateChange', { status, deviceName });
       },
       onError: (error) => this.reportNonFatal(error),
     });
     void this.cast.configure(this.opts.cast);
+  }
+
+  private castUiState(): { available: boolean; connected: boolean } {
+    const status = this.state.cast.status;
+    return { available: this.opts.cast.enabled === true && status !== 'unavailable', connected: status === 'connected' };
+  }
+
+  /**
+   * Opens the Cast device picker and casts the current content. Rejects with
+   * `cast-unavailable` (Cast disabled, SDK not loaded or no devices) or
+   * `cast-rejected` with `details.reason` when the content cannot be cast
+   * safely (DRM/auth without a custom receiver, ads, Blob sources, active ad).
+   */
+  async startCasting(): Promise<void> {
+    this.assertUsable();
+    if (!this.opts.cast.enabled) throw playerError('cast-unavailable', 'cast', { message: 'Casting is disabled (set cast.enabled).' });
+    this.ensureCast();
+    await this.cast!.start();
+  }
+
+  /** Ends the Cast session this player started; local playback resumes at the remote position. */
+  async stopCasting(): Promise<void> {
+    this.assertUsable();
+    this.cast?.stop();
   }
 
   private castMedia(): { url: string; contentType: string; currentTime: number; autoplay: boolean } | { rejected: string } {
@@ -2161,6 +2215,8 @@ export function createRef(get: () => PlayerController | null, events: TypedEmitt
     },
     enterPictureInPicture: () => withController((c) => c.enterPictureInPicture()),
     exitPictureInPicture: () => withController((c) => c.exitPictureInPicture()),
+    startCasting: () => withController((c) => c.startCasting()),
+    stopCasting: () => withController((c) => c.stopCasting()),
     captureFrame: () => withController((c) => c.captureFrame()),
     getState: () => {
       const c = get();

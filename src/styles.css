@@ -450,3 +450,8 @@
   white-space: nowrap;
   border: 0;
 }
+
+/* Cast control: highlighted while a session is connected. */
+.rsp-root .art-control-rsp-cast.rsp-cast-connected {
+  color: var(--art-theme, #00b4ff);
+}

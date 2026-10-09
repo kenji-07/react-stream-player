@@ -28,6 +28,26 @@ function loadArtplayer(): Promise<ArtplayerClass> {
   return artplayerPromise;
 }
 
+/** Cast icon (screen with broadcast arcs), drawn with DOM APIs — no markup strings. */
+function castIcon(): SVGSVGElement {
+  const ns = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(ns, 'svg');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('width', '22');
+  svg.setAttribute('height', '22');
+  svg.setAttribute('aria-hidden', 'true');
+  svg.setAttribute('fill', 'none');
+  svg.setAttribute('stroke', 'currentColor');
+  svg.setAttribute('stroke-width', '2');
+  svg.setAttribute('stroke-linecap', 'round');
+  for (const d of ['M3 9V6a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1h-6', 'M3 13a6 6 0 0 1 6 6', 'M3 17a2 2 0 0 1 2 2']) {
+    const path = document.createElementNS(ns, 'path');
+    path.setAttribute('d', d);
+    svg.appendChild(path);
+  }
+  return svg;
+}
+
 function text(tag: 'span' | 'div', value: string, className?: string): HTMLElement {
   const el = document.createElement(tag);
   if (className) el.className = className;
@@ -87,6 +107,7 @@ export class ArtplayerAdapter implements UiAdapter {
   private observer: MutationObserver | null = null;
   private liveControl: HTMLElement | null = null;
   private fullscreenControl: HTMLElement | null = null;
+  private castControl: HTMLElement | null = null;
   private fullscreenState: { active: boolean; mode: FullscreenMode | null } = { active: false, mode: null };
   private duration: number | null = null;
   private adActive = false;
@@ -224,6 +245,22 @@ export class ArtplayerAdapter implements UiAdapter {
     });
     this.liveControl = controls['rsp-live'] ?? null;
     if (this.liveControl) this.liveControl.style.display = 'none';
+    // Hidden until the Cast SDK reports available devices (setCast).
+    controls.add({
+      name: 'rsp-cast',
+      position: 'right',
+      index: 65,
+      html: castIcon(),
+      tooltip: t.cast,
+      click: () => this.actions.toggleCast(),
+    });
+    this.castControl = controls['rsp-cast'] ?? null;
+    if (this.castControl) {
+      this.castControl.style.display = 'none';
+      this.castControl.setAttribute('role', 'button');
+      this.castControl.setAttribute('aria-label', t.cast);
+      this.castControl.setAttribute('aria-pressed', 'false');
+    }
     if (this.fullscreenSupported()) {
       const wrap = document.createElement('span');
       wrap.className = 'rsp-fullscreen-icons';
@@ -605,6 +642,13 @@ export class ArtplayerAdapter implements UiAdapter {
     control.setAttribute('aria-pressed', String(active));
     this.syncFullscreenClass();
     (this.art as unknown as { emit(name: string): void }).emit('resize');
+  }
+
+  setCast(state: { available: boolean; connected: boolean }): void {
+    if (this.destroyed || !this.castControl) return;
+    this.castControl.style.display = state.available ? '' : 'none';
+    this.castControl.setAttribute('aria-pressed', String(state.connected));
+    this.castControl.classList.toggle('rsp-cast-connected', state.connected);
   }
 
   setAdActive(active: boolean): void {

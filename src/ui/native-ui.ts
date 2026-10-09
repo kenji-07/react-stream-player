@@ -83,6 +83,10 @@ export class NativeUiAdapter implements UiAdapter {
     this.video.controls = !active;
   }
 
+  setCast(): void {
+    // Browser-native controls provide their own remote-playback UI.
+  }
+
   setDuration(): void {
     /* not needed */
   }
