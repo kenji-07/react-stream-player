@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-09T15:33:49.903Z",
+  "date": "2026-10-09T17:56:50.662Z",
   "browser": "Chromium 141.0.7390.37 (headless, Playwright 1.56.1)",
   "platform": "linux x64",
   "versions": {
@@ -21,24 +21,24 @@
       "pass": true,
       "details": {
         "before": {
-          "time": 4.015401,
+          "time": 4.020347,
           "paused": false,
           "rate": 1.5,
           "volume": 0.4,
           "muted": false,
-          "src": "http://127.0.0.1:38093/fixtures/mp4/vod-360p.mp4",
+          "src": "http://127.0.0.1:38321/fixtures/mp4/vod-360p.mp4",
           "showing": [
             "English"
           ],
           "videos": 1
         },
         "after": {
-          "time": 4.461861,
+          "time": 4.459965,
           "paused": false,
           "rate": 1.5,
           "volume": 0.4,
           "muted": false,
-          "src": "http://127.0.0.1:38093/fixtures/mp4/vod-540p.mp4",
+          "src": "http://127.0.0.1:38321/fixtures/mp4/vod-540p.mp4",
           "showing": [
             "English"
           ],
@@ -63,24 +63,24 @@
       "pass": true,
       "details": {
         "pausedBefore": {
-          "time": 4.461861,
+          "time": 4.459965,
           "paused": true,
           "rate": 1.5,
           "volume": 0.4,
           "muted": false,
-          "src": "http://127.0.0.1:38093/fixtures/mp4/vod-540p.mp4",
+          "src": "http://127.0.0.1:38321/fixtures/mp4/vod-540p.mp4",
           "showing": [
             "English"
           ],
           "videos": 1
         },
         "pausedAfter": {
-          "time": 4.461861,
+          "time": 4.459965,
           "paused": true,
           "rate": 1.5,
           "volume": 0.4,
           "muted": false,
-          "src": "http://127.0.0.1:38093/fixtures/mp4/vod-216p.mp4",
+          "src": "http://127.0.0.1:38321/fixtures/mp4/vod-216p.mp4",
           "showing": [
             "English"
           ],
@@ -295,7 +295,7 @@
           "artDestroyed": 2
         },
         "videos": 1,
-        "src": "http://127.0.0.1:38093/fixtures/mp4/vod-360p.mp4",
+        "src": "http://127.0.0.1:38321/fixtures/mp4/vod-360p.mp4",
         "react": {
           "adStarts": 2,
           "renders": 182
