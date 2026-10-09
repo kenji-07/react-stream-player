@@ -86,7 +86,7 @@ export async function startLive({ protocol, dir, windowSegments = 8, codec = pro
       '-hls_flags', 'delete_segments+independent_segments+program_date_time',
       '-hls_delete_threshold', '2',
       '-hls_segment_type', 'fmp4', '-hls_fmp4_init_filename', 'init.mp4',
-      '-var_stream_map', 'v:0,agroup:aud v:1,agroup:aud a:0,agroup:aud,language:en,name:English',
+      '-var_stream_map', 'v:0,agroup:aud v:1,agroup:aud a:0,agroup:aud,language:en',
       '-hls_segment_filename', path.join(out, 'stream_%v/seg_%05d.m4s'),
       path.join(out, 'stream_%v/index.m3u8'),
     ];

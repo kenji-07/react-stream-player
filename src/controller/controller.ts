@@ -50,6 +50,8 @@ interface ContentSession {
   /** Content blob currently attached (released after replacement). */
   attachedBlob: Blob | null;
   autoRetries: number;
+  /** Pending preroll decision; other play intents wait on it instead of starting content. */
+  prerollGate: Promise<void> | null;
 }
 
 interface BreakSnapshot {
@@ -112,6 +114,7 @@ export class PlayerController {
   private qualitySwitchGen = 0;
   /** Position a transport switch is restoring to; reused by overlapping switches (last wins). */
   private inFlightPosition: number | null = null;
+  private breakStartWaiters = new Set<() => void>();
   private breakSnapshot: BreakSnapshot | null = null;
   /** Non-initial transport load in progress: element play/pause/seek events it causes are not re-emitted. */
   private transportSwitching = false;
@@ -538,9 +541,12 @@ export class PlayerController {
       endingInProgress: false,
       attachedBlob: null,
       autoRetries: 0,
+      prerollGate: null,
     };
     this.session = session;
     this.breakSnapshot = null;
+    this.inFlightPosition = null;
+    this.breakStartWaiters.clear();
     if (previous?.attachedBlob) {
       // Released after the engine detaches it (below).
       session.attachedBlob = null;
@@ -896,11 +902,47 @@ export class PlayerController {
           return;
         }
       }
-      await this.ads?.beforeContentPlay();
-      if (this.session !== session || this.destroyed) return;
-      if (!this.state.intendedPlaying) return;
-      if (session.kind === 'live') this.engine?.seekToLive();
+      // Content starts from its startup position: baseline for media-time cues.
+      this.ads?.onSeek(this.video.currentTime);
+      // play() resolves once playback starts — the ad break or the content —
+      // never after the whole break; content continues in the background.
+      // (Register before starting: a break can begin synchronously.)
+      const breakStarted = this.nextBreakStart().then(() => 'break' as const);
+      const preroll = this.ads?.beforeContentPlay() ?? Promise.resolve();
+      const gate = preroll.then(() => {
+        if (session.prerollGate === gate) session.prerollGate = null;
+      });
+      session.prerollGate = gate;
+      const first = await Promise.race([preroll.then(() => 'done' as const), breakStarted]);
+      if (first === 'break') {
+        void gate.then(() => this.afterPreroll(session, origin));
+        return;
+      }
+      await gate;
+      return this.afterPreroll(session, origin);
     }
+    if (session.prerollGate) {
+      // The first play intent is still deciding/playing the preroll; its
+      // continuation starts content. Resolve when playback (ad or content) starts.
+      await Promise.race([session.prerollGate, this.linearAdActive() ? Promise.resolve() : this.nextBreakStart()]);
+      return;
+    }
+    return this.playFromIntent(session, origin);
+  }
+
+  private nextBreakStart(): Promise<void> {
+    return new Promise((resolve) => this.breakStartWaiters.add(resolve));
+  }
+
+  private async afterPreroll(session: ContentSession, origin: PlayOrigin): Promise<void> {
+    this.breakStartWaiters.clear();
+    if (this.session !== session || this.destroyed || !this.state.intendedPlaying) return;
+    // Live: after a preroll, content starts at the engine's current live position.
+    if (session.kind === 'live') this.engine?.seekToLive();
+    await this.playFromIntent(session, origin);
+  }
+
+  private async playFromIntent(session: ContentSession, origin: PlayOrigin): Promise<void> {
     if (session.ended && session.kind === 'vod') {
       session.ended = false;
       this.state.ended = false;
@@ -960,6 +1002,8 @@ export class PlayerController {
       position: this.video.currentTime,
     };
     this.realPause();
+    for (const resolve of [...this.breakStartWaiters]) resolve();
+    this.breakStartWaiters.clear();
     this.state.ad = { ...this.state.ad, active: true, pipeline: info.pipeline };
     this.ui?.setAdActive(true);
     this.root.dataset.rspAdActive = '';
@@ -996,7 +1040,9 @@ export class PlayerController {
       }
     }
     this.updateClock();
-    if (info.placement === 'postroll') return; // ended is finalised by onContentEnded
+    // Postroll: `ended` is finalised by onContentEnded. Preroll: content is
+    // started by the play-intent continuation (afterPreroll), exactly once.
+    if (info.placement === 'postroll' || info.placement === 'preroll') return;
     if (this.state.intendedPlaying && session.contentStarted) void this.playElement('restore');
   }
 
@@ -1014,8 +1060,9 @@ export class PlayerController {
   private installVideoListeners(): void {
     const v = this.video;
     this.listen(v, 'play', () => {
-      if (this.linearAdActive()) {
-        // Something played content during an ad: keep content paused.
+      if (this.linearAdActive() || this.session?.prerollGate) {
+        // Something played content during an ad or while the preroll is being
+        // decided (e.g. browser-native controls): keep content paused.
         this.realPause();
         return;
       }
@@ -1051,11 +1098,13 @@ export class PlayerController {
       if (v.loop && this.lastMediaTime > 0 && v.currentTime < 0.5 && Number.isFinite(v.duration) && this.lastMediaTime > v.duration - 1.5) {
         this.ads?.onLoopRestart();
       }
+      const alreadySeeking = this.seekingFlag;
       this.seekingFlag = true;
       this.state.seeking = true;
       this.ads?.onSeek(null);
       this.updateClock();
-      if (!this.transportSwitching) this.emit('seeking', { currentTime: v.currentTime });
+      // Engines may re-seek several times before `seeked`; emit once per seek.
+      if (!this.transportSwitching && !alreadySeeking) this.emit('seeking', { currentTime: v.currentTime });
     });
     this.listen(v, 'seeked', () => {
       this.seekingFlag = false;
@@ -1920,6 +1969,7 @@ export class PlayerController {
       s.currentTime = this.video.currentTime;
       s.paused = this.video.paused;
     }
+    s.ad.pipeline = this.ads?.activePipeline ?? null;
     const { error, ...rest } = s;
     return { ...(structuredClone(rest) as Omit<PlayerState, 'error'>), error };
   }
@@ -2004,6 +2054,10 @@ export class PlayerController {
   emit<K extends PlayerEventName>(event: K, payload: PlayerEventMap[K]): void {
     if (this.destroyed && event !== 'destroy') return;
     const ctx = this.context();
+    if ((event === 'error' || event === 'adError') && payload instanceof PlayerErrorImpl && payload.contentSessionId === null && ctx.contentSessionId) {
+      // Errors carry the session/load that produced them so stale ones can be ignored.
+      payload = payload.withContext(ctx.contentSessionId, ctx.loadId) as unknown as PlayerEventMap[K];
+    }
     this.emitter.emit(event, payload, ctx);
     this.sink?.emit(event, payload, ctx);
     const callback = this.callbacks()[`on${capitalize(event)}` as keyof PlayerEventCallbacks] as PlayerEventListener<K> | undefined;

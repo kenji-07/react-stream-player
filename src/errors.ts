@@ -86,8 +86,9 @@ export class PlayerErrorImpl extends Error implements PlayerError {
     }
     this.details = Object.freeze(details);
     if (init.cause !== undefined) {
-      // Keep the vendor object for debugging, but only after redacting string content.
-      this.cause = init.cause instanceof Error ? init.cause : redactValue(init.cause);
+      // Never expose raw vendor data (URLs with signed queries, headers, license
+      // payloads): keep a redacted, plain-object copy for debugging only.
+      this.cause = sanitizeCause(init.cause);
     }
   }
 
@@ -104,6 +105,23 @@ export class PlayerErrorImpl extends Error implements PlayerError {
       cause: this.cause,
     });
   }
+}
+
+function sanitizeCause(cause: unknown): unknown {
+  if (cause instanceof PlayerErrorImpl) return cause;
+  if (cause instanceof Error) {
+    const vendor = cause as Error & { category?: unknown; code?: unknown; severity?: unknown; data?: unknown };
+    return redactValue({
+      name: cause.name,
+      message: cause.message,
+      category: vendor.category,
+      code: vendor.code,
+      severity: vendor.severity,
+      data: vendor.data,
+      stack: cause.stack,
+    });
+  }
+  return redactValue(cause);
 }
 
 export function playerError(

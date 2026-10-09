@@ -175,7 +175,7 @@ export class DirectAdPresenter {
     if (ad.type === 'video') return 'error';
     const duration = ad.duration;
     const info = adInfo(ad, placement, duration);
-    const container = el('div', `rsp-ad ${linear ? 'rsp-ad-linear' : 'rsp-ad-overlay'} rsp-ad-${ad.type}`);
+    const container = el('div', `rsp-ad ${linear ? 'rsp-ad-linear' : 'rsp-ad-overlay'} rsp-ad-type-${ad.type}`);
     container.setAttribute('role', linear ? 'region' : 'complementary');
     container.setAttribute('aria-label', this.host.t().advertisement);
     const media = el('div', 'rsp-ad-media');
@@ -280,7 +280,7 @@ export class DirectAdPresenter {
       this.host.error(info, playerError('ad-invalid-config', 'ads'));
       return 'error';
     }
-    const container = el('div', 'rsp-ad rsp-ad-linear rsp-ad-video');
+    const container = el('div', 'rsp-ad rsp-ad-linear rsp-ad-type-video');
     container.setAttribute('role', 'region');
     container.setAttribute('aria-label', this.host.t().advertisement);
     const video = el('video', 'rsp-ad-media-video');

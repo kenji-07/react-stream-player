@@ -193,6 +193,33 @@ mpd = mpd.replace(/(<AdaptationSet id="2"[^>]*)>/, '$1>\n\t\t\t<Label>Mongolian<
 fs.writeFileSync(file, mpd);
 NODE
 
+echo "[fixtures] ClearKey-encrypted DASH (DEVELOPMENT/TESTING ONLY key)"
+# Key id / key are public test values shared with scripts/fixture-server.mjs.
+# The audio representation is encrypted ('cenc', full-sample AES-CTR) by
+# scripts/cenc-encrypt.mjs; video stays clear (VP9 in CENC requires subsample
+# encryption, which this fixture tool does not implement).
+CK_KID=9eb4050de44b4802932e27d75083e266
+CK_KEY=166634c675823c235a4a9446fad52e4d
+mkdir -p dash-clearkey
+ffmpeg -hide_banner -loglevel error -y -i mp4/vod-360p.mp4 -map 0:v -map 0:a -c copy \
+  -f dash -dash_segment_type mp4 -seg_duration 2 -use_template 1 -use_timeline 1 \
+  -adaptation_sets "id=0,streams=v id=1,streams=a" \
+  -init_seg_name 'init-$RepresentationID$.m4s' -media_seg_name 'chunk-$RepresentationID$-$Number%05d$.m4s' \
+  dash-clearkey/manifest.mpd
+node "$ROOT/scripts/cenc-encrypt.mjs" "$OUT/dash-clearkey" 1 "$CK_KID" "$CK_KEY"
+node - "$OUT/dash-clearkey/manifest.mpd" "$CK_KID" <<'NODE'
+const fs = require('fs');
+const [file, kid] = process.argv.slice(2);
+const uuid = `${kid.slice(0, 8)}-${kid.slice(8, 12)}-${kid.slice(12, 16)}-${kid.slice(16, 20)}-${kid.slice(20)}`;
+let mpd = fs.readFileSync(file, 'utf8');
+mpd = mpd.replace('<MPD ', '<MPD xmlns:cenc="urn:mpeg:cenc:2013" ');
+const protection = `
+\t\t\t<ContentProtection schemeIdUri="urn:mpeg:dash:mp4protection:2011" value="cenc" cenc:default_KID="${uuid}"/>
+\t\t\t<ContentProtection schemeIdUri="urn:uuid:e2719d58-a985-b3c9-781a-b030af78d30e" value="ClearKey1.0"/>`;
+mpd = mpd.replace(/(<AdaptationSet id="1"[^>]*>)/, `$1${protection}`);
+fs.writeFileSync(file, mpd);
+NODE
+
 echo "[fixtures] error fixtures"
 printf 'this is not a media file\n' > broken/not-a-video.mp4
 printf '#EXTM3U\n#EXT-X-STREAM-INF:BANDWIDTH=1\nmissing/index.m3u8\n' > broken/missing-variant.m3u8
