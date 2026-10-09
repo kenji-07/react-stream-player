@@ -162,6 +162,19 @@ export function createFixtureServer({ root = repoRoot, liveDir, fixturesDir } = 
     });
 
     let m;
+    // `?flaky=<n>[&key=<k>]` fails the first <n> requests for this exact path
+    // (relative child URLs do not inherit the query, unlike /flaky/<n>/...).
+    const flaky = Number(url.searchParams.get('flaky') ?? 0);
+    if (flaky > 0) {
+      const key = `${pathname}#${url.searchParams.get('key') ?? ''}`;
+      const count = (flakyCounts.get(key) ?? 0) + 1;
+      flakyCounts.set(key, count);
+      if (count <= flaky) {
+        res.writeHead(503, { 'Content-Type': 'text/plain' });
+        res.end('flaky');
+        return;
+      }
+    }
     if ((m = /^\/fixtures\/(.*)$/.exec(pathname))) {
       const file = safeJoin(fixtures, m[1]);
       if (!file) return res.writeHead(400).end();

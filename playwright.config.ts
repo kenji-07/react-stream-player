@@ -28,16 +28,6 @@ export default defineConfig({
           args: ['--autoplay-policy=no-user-gesture-required'],
         },
       },
-      testIgnore: /autoplay-policy\.spec\.ts/,
-    },
-    {
-      // Default autoplay policy (user gesture required) for autoplay-blocked tests.
-      name: 'chromium-autoplay-policy',
-      use: {
-        ...devices['Desktop Chrome'],
-        launchOptions: { executablePath: process.env.CHROMIUM_PATH ?? '/opt/pw-browsers/chromium', args: ['--autoplay-policy=document-user-activation-required'] },
-      },
-      testMatch: /autoplay-policy\.spec\.ts/,
     },
   ],
   webServer: [

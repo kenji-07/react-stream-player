@@ -52,6 +52,8 @@ interface ContentSession {
   autoRetries: number;
   /** Pending preroll decision; other play intents wait on it instead of starting content. */
   prerollGate: Promise<void> | null;
+  /** `ready` was emitted for this session (first successful load, whatever its reason). */
+  readyEmitted: boolean;
 }
 
 interface BreakSnapshot {
@@ -150,7 +152,6 @@ export class PlayerController {
     const { resolved, issues } = resolveOptions(options);
     this.opts = resolved;
     this.t = resolveTranslations(resolved.locale, resolved.translations);
-    this.credentialRules = this.computeCredentialRules();
 
     root.classList.add('rsp-root');
     if (!root.hasAttribute('tabindex')) root.tabIndex = 0;
@@ -183,6 +184,8 @@ export class PlayerController {
     this.installIntentRouting();
 
     this.state = this.initialState();
+    // After state exists: invalid rules are reported as config errors.
+    this.credentialRules = this.computeCredentialRules();
     this.reducedMotionQuery = typeof window.matchMedia === 'function' ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
     this.applyRootPresentation();
     this.applyVideoPresentation();
@@ -542,6 +545,7 @@ export class PlayerController {
       attachedBlob: null,
       autoRetries: 0,
       prerollGate: null,
+      readyEmitted: false,
     };
     this.session = session;
     this.breakSnapshot = null;
@@ -748,7 +752,8 @@ export class PlayerController {
     this.ads?.setMediaKind(kind);
     await this.subtitles?.onEngineReady(engine.kind);
     if (this.session !== session) return;
-    this.applyTrackPreferences(reason === 'initial');
+    const firstReady = !session.readyEmitted;
+    this.applyTrackPreferences(firstReady);
     this.state.duration = this.contentDuration();
     this.ui?.setDuration(this.state.duration);
     this.state.error = null;
@@ -758,11 +763,12 @@ export class PlayerController {
     this.updateLiveState(true);
     this.refreshTracks();
     this.applyRateToElement(this.lastKnownRate);
-    if (reason === 'initial') {
+    if (firstReady) {
+      session.readyEmitted = true;
       this.emit('ready', { sourceType: session.source.type, engine: engine.kind, duration: this.state.duration, isLive });
     }
     if (this.state.intendedPlaying && !this.linearAdActive()) {
-      await this.startContentPlayback(reason === 'initial' && this.opts.autoplay.enabled && !session.contentStarted ? 'autoplay' : 'restore');
+      await this.startContentPlayback(firstReady && this.opts.autoplay.enabled && !session.contentStarted ? 'autoplay' : 'restore');
     }
     if (this.state.loadId === this.loadId) this.transportSwitching = false;
   }
@@ -1305,7 +1311,21 @@ export class PlayerController {
     if (session && autoRetryable && session.autoRetries < limit) {
       session.autoRetries++;
       const delay = Math.min(8000, 1000 * 2 ** (session.autoRetries - 1));
-      this.emit('error', contextual);
+      // The session continues with an automatic retry: report non-fatally.
+      this.emit(
+        'error',
+        new PlayerErrorImpl({
+          category: contextual.category,
+          code: contextual.code,
+          message: contextual.message,
+          fatal: false,
+          recoverable: true,
+          contentSessionId: contextual.contentSessionId,
+          loadId: contextual.loadId,
+          details: { ...contextual.details, autoRetry: session.autoRetries, retryDelayMs: delay },
+          cause: contextual.cause,
+        }),
+      );
       if (this.retryTimer) clearTimeout(this.retryTimer);
       this.retryTimer = setTimeout(() => {
         this.retryTimer = null;

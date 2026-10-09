@@ -67,7 +67,35 @@ export class SubtitleManager {
     this.host.error(playerError('subtitle-load-error', 'subtitle', { details: { trackId: el.dataset.rspId ?? '' } }));
   };
 
-  constructor(private readonly host: SubtitleHost) {}
+  /**
+   * Browsers may change <track> modes on their own (Chromium's automatic
+   * selection can mark an extra track "showing"), and in native-UI mode the
+   * viewer can pick captions from the browser's own menu. Re-assert the
+   * intended modes, but adopt a genuine single-track menu choice.
+   */
+  private readonly onTrackListChange = () => {
+    if (this.destroyed || this.engineKind !== 'native') return;
+    const entries = [...this.external.values()].filter((e) => e.element);
+    const showing = entries.filter((e) => e.element!.track.mode === 'showing');
+    if (this.host.nativeUi() && !this.videoOnlyPresentation) {
+      const current = this.selectedId ?? null;
+      if (showing.length === 1 && showing[0]!.track.id !== current) {
+        this.select(showing[0]!.track.id);
+        this.host.changed();
+        return;
+      }
+      if (showing.length === 0 && current !== null) {
+        this.select(null);
+        this.host.changed();
+        return;
+      }
+    }
+    this.apply();
+  };
+
+  constructor(private readonly host: SubtitleHost) {
+    host.video.textTracks?.addEventListener?.('change', this.onTrackListChange);
+  }
 
   /** Applies the host's `subtitles` list. Unchanged entries are kept (no refetch). */
   setExternal(tracks: SubtitleTrack[]): void {
@@ -330,6 +358,7 @@ export class SubtitleManager {
 
   destroy(): void {
     if (this.destroyed) return;
+    this.host.video.textTracks?.removeEventListener?.('change', this.onTrackListChange);
     this.removeTrackElements();
     this.renderer?.destroy();
     this.renderer = null;

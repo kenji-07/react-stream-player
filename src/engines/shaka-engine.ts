@@ -269,6 +269,12 @@ export class ShakaEngine implements MediaEngine {
         this.redirectBlocked = false;
         throw playerError('credential-redirect-blocked', 'network', { fatal: true, recoverable: false, cause: error });
       }
+      const isShakaError = typeof (error as { category?: unknown } | null)?.category === 'number';
+      if (!isShakaError) {
+        // Plain exceptions from load() come from manifest/playlist parsing
+        // (e.g. Shaka 5.2.12's XML parser rejecting a truncated MPD).
+        throw playerError('manifest-error', 'manifest', { fatal: true, recoverable: false, cause: error });
+      }
       const mapped = fromShakaError(error, true);
       throw mapped.code === 'operation-aborted' ? mapped : new PlayerErrorImpl({ ...mapped, fatal: true, details: { ...mapped.details }, category: mapped.category, code: mapped.code });
     } finally {
@@ -413,7 +419,7 @@ export class ShakaEngine implements MediaEngine {
         used.set(base, n + 1);
         id = n ? `${base}-${n}` : base;
       }
-      const kind: SubtitleKind = t.forced ? 'forced' : t.kind === 'caption' ? 'captions' : 'subtitles';
+      const kind: SubtitleKind = t.forced ? 'forced' : t.kind === 'caption' || t.kind === 'captions' ? 'captions' : 'subtitles';
       return { id, label: t.label, language: t.language || 'und', kind, forced: t.forced, active: t.active, externalId };
     });
   }
@@ -437,7 +443,8 @@ export class ShakaEngine implements MediaEngine {
   async addExternalText(track: { externalId: string; url: string; language: string; label: string; kind: SubtitleKind }): Promise<void> {
     const player = this.player;
     if (!player) throw playerError('player-not-ready', 'state');
-    const kind = track.kind === 'captions' ? 'caption' : 'subtitle';
+    // Shaka 5.2.12 expects the HTML track kinds here ("subtitles"/"captions").
+    const kind = track.kind === 'captions' ? 'captions' : 'subtitles';
     const added = await player.addTextTrackAsync(track.url, track.language, kind, 'text/vtt', undefined, track.label, track.kind === 'forced');
     this.externalIds.set(added.id, track.externalId);
     this.emitter.emit('tracksChanged', undefined, undefined);
