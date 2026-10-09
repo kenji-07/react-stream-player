@@ -180,3 +180,18 @@ test.describe('Blob inputs and object URL ownership', () => {
     expect(result.created).toBe(0);
   });
 });
+
+test('an SRT subtitle file is rejected with subtitle-format-unsupported; playback and other tracks continue', async ({ page }) => {
+  await mount(page, {
+    source: { src: `${BASE}/fixtures/mp4/vod-216p.mp4`, type: 'mp4' },
+    subtitles: [
+      { id: 'srt', src: `${BASE}/fixtures/subs/unsupported.srt`, label: 'SRT', language: 'en' },
+      { id: 'en', src: `${BASE}/fixtures/subs/en.vtt`, label: 'English', language: 'en' },
+    ],
+  });
+  await waitForReady(page);
+  const errors = (await events(page, 'error')).map((e) => e.payload);
+  expect(errors).toHaveLength(1);
+  expect(errors[0]).toMatchObject({ code: 'subtitle-format-unsupported', category: 'subtitle', fatal: false });
+  expect((await state(page)).subtitles.available.map((t: { id: string }) => t.id)).toEqual(['en']);
+});

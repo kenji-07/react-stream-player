@@ -1,6 +1,6 @@
 // Minimal local typings for the subset of the Google IMA HTML5 SDK used here.
 // Verified against @types/google_interactive_media_ads_types 3.697.1 (see
-// tests/unit/ima-types.test-d.ts). Kept local so the package's public type
+// tests/types/ima-types.test-d.ts). Kept local so the package's public type
 // declarations do not depend on IMA types.
 
 export interface ImaAd {

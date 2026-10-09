@@ -403,7 +403,9 @@ export class PlayerController {
 
   private reportIssues(issues: OptionIssue[]): void {
     for (const issue of issues) {
-      const error = playerError('invalid-config', 'config', { message: `Invalid option ${issue.path}: ${issue.message}`, details: { path: issue.path } });
+      const error = issue.code
+        ? playerError(issue.code, 'subtitle', { message: issue.message, details: { path: issue.path } })
+        : playerError('invalid-config', 'config', { message: `Invalid option ${issue.path}: ${issue.message}`, details: { path: issue.path } });
       this.emit('error', error);
     }
   }

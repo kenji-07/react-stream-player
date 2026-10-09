@@ -118,6 +118,8 @@ export interface ResolvedOptions {
 export interface OptionIssue {
   path: string;
   message: string;
+  /** Specific error code; defaults to `invalid-config`. */
+  code?: 'subtitle-format-unsupported';
 }
 
 function num(value: unknown, path: string, issues: OptionIssue[], check: (n: number) => boolean, rule: string): number | undefined {
@@ -262,7 +264,7 @@ export function validateSubtitles(subtitles: SubtitleTrack[] | undefined, issues
       return;
     }
     if (track.format !== undefined && track.format !== 'webvtt') {
-      issues.push({ path, message: `${path}: only WebVTT external subtitles are supported` });
+      issues.push({ path, message: `${path}: only WebVTT external subtitles are supported`, code: 'subtitle-format-unsupported' });
       return;
     }
     if (typeof track.src === 'string') {
@@ -271,7 +273,7 @@ export function validateSubtitles(subtitles: SubtitleTrack[] | undefined, issues
         return;
       }
       if (UNSUPPORTED_SUBTITLE_EXT.test(pathnameOf(track.src))) {
-        issues.push({ path, message: `${path}: only WebVTT external subtitles are supported` });
+        issues.push({ path, message: `${path}: only WebVTT external subtitles are supported`, code: 'subtitle-format-unsupported' });
         return;
       }
     } else if (!(typeof Blob !== 'undefined' && track.src instanceof Blob)) {

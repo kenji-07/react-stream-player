@@ -135,3 +135,30 @@ test('context menu: no vendor version link or source info; disabled menu falls b
   });
   expect(prevented).toBe(false);
 });
+
+test('nothing is written to browser storage (no tokens, positions or vendor settings)', async ({ page }) => {
+  await page.evaluate(() => {
+    localStorage.clear();
+    sessionStorage.clear();
+  });
+  await mount(page, {
+    source: { id: 's', type: 'mp4', variants: [{ id: 'a', label: '216p', height: 216, src: `${BASE}/fixtures/mp4/vod-216p.mp4?token=abc` }, { id: 'b', label: '360p', height: 360, src: `${BASE}/fixtures/mp4/vod-360p.mp4?token=abc` }] },
+    network: { credentials: [{ origins: [BASE], headers: { Authorization: 'Bearer secret-token' } }] },
+  });
+  await waitForReady(page);
+  await page.evaluate(() => window.__h.ref().play());
+  await waitForTime(page, 1);
+  await page.evaluate(async () => {
+    const ref = window.__h.ref();
+    ref.setVolume(0.3);
+    ref.setMuted(true);
+    ref.setPlaybackRate(1.5);
+    await ref.seekTo(5);
+    await ref.setQuality('b');
+  });
+  await page.locator('.art-control-setting').click();
+  await page.mouse.click(5, 5);
+  await page.waitForTimeout(500);
+  const storage = await page.evaluate(() => ({ local: localStorage.length, session: sessionStorage.length, cookie: document.cookie }));
+  expect(storage).toEqual({ local: 0, session: 0, cookie: '' });
+});

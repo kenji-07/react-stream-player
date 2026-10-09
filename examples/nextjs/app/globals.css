@@ -1,0 +1,28 @@
+:root {
+  color-scheme: light dark;
+  font-family: system-ui, sans-serif;
+}
+body {
+  margin: 0 auto;
+  max-width: 960px;
+  padding: 16px;
+}
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+nav button[aria-pressed='true'] {
+  font-weight: 700;
+}
+.example-note {
+  font-size: 14px;
+  opacity: 0.8;
+}
+.example-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0;
+}

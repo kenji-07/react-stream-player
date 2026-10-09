@@ -47,7 +47,7 @@ export async function waitForEvent(page: Page, name: string, timeout = 20_000, m
 }
 
 export async function waitForReady(page: Page, timeout = 20_000): Promise<void> {
-  await page.waitForFunction(() => window.__h.events.some((e: { name: string }) => e.name === 'ready' || (e.name === 'statusChange' && e.payload === 'error')), null, { timeout });
+  await page.waitForFunction(() => window.__h.events.some((e: { name: string; payload?: unknown }) => e.name === 'ready' || (e.name === 'statusChange' && e.payload === 'error')), null, { timeout });
   const errors = (await events(page, 'error')).filter((e) => e.payload?.fatal);
   expect(errors, `fatal errors before ready: ${JSON.stringify(errors.map((e) => e.payload?.code))}`).toHaveLength(0);
 }

@@ -6,8 +6,11 @@ import type { PlayerOptions } from './types/options.js';
 import type { PlayerRef } from './types/ref.js';
 
 export interface PlayerHandle extends PlayerRef {
-  /** Applies new options (semantic diff; unchanged values are no-ops). */
-  update(options: PlayerOptions): void;
+  /**
+   * Applies new options (semantic diff; unchanged values are no-ops). Pass
+   * `callbacks` to replace the event callbacks; omit it to keep the current ones.
+   */
+  update(options: PlayerOptions, callbacks?: PlayerEventCallbacks): void;
 }
 
 /**
@@ -19,8 +22,8 @@ export function createPlayer(root: HTMLElement, options: PlayerOptions, callback
   const controller = new PlayerController(root, options, () => current);
   const ref = createRef(() => controller, null);
   return Object.assign(ref, {
-    update(next: PlayerOptions & { callbacks?: PlayerEventCallbacks }) {
-      if (next.callbacks) current = next.callbacks;
+    update(next: PlayerOptions, callbacks?: PlayerEventCallbacks) {
+      if (callbacks) current = callbacks;
       controller.update(next);
     },
   });

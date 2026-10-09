@@ -9,7 +9,7 @@ export const IMA_SDK_URLS = {
 let pending: Promise<ImaNamespace> | null = null;
 
 function existing(): ImaNamespace | null {
-  const g = (globalThis as { google?: { ima?: ImaNamespace } }).google;
+  const g = (globalThis as unknown as { google?: { ima?: ImaNamespace } }).google;
   return g?.ima?.AdDisplayContainer ? g.ima : null;
 }
 

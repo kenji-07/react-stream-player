@@ -1,0 +1,543 @@
+{
+  "$comment": "Versioned test-media inventory. Local fixtures are generated deterministically by scripts/generate-fixtures.sh (and scripts/live-fixtures.mjs for live) from ffmpeg lavfi test sources: no third-party content, no rights restrictions. External fixtures are referenced ONLY by environment-variable names; never commit tokens, secrets or long-lived signed URLs. A skipped external fixture leaves its release gate open (docs/release-checklist.md).",
+  "schemaVersion": 1,
+  "inventoryVersion": "2026-10-09",
+  "generator": {
+    "script": "scripts/generate-fixtures.sh",
+    "liveScript": "scripts/live-fixtures.mjs",
+    "output": "tests/fixtures/media/ (gitignored; regenerate with `npm run fixtures`)",
+    "defaultCodec": {
+      "video": "vp09.00.30.08",
+      "audio": "opus",
+      "container": "fragmented/progressive MP4"
+    },
+    "alternateCodec": {
+      "env": "FIXTURE_CODEC=h264",
+      "video": "avc1.4d401e",
+      "audio": "mp4a.40.2",
+      "purpose": "Safari/iOS manual testing"
+    },
+    "verifiedWith": "ffmpeg 6.1.1 (Ubuntu 24.04)"
+  },
+  "owner": {
+    "fixtures": "react-stream-player maintainers",
+    "license": "Generated synthetic media; reusable without restriction (CC0-equivalent). DejaVu Sans Mono glyphs rendered into frames are under the DejaVu font license (free redistribution)."
+  },
+  "fixtures": [
+    {
+      "id": "mp4-variants",
+      "source": {
+        "kind": "local",
+        "paths": [
+          "mp4/vod-216p.mp4",
+          "mp4/vod-360p.mp4",
+          "mp4/vod-540p.mp4"
+        ]
+      },
+      "protocol": "mp4",
+      "live": false,
+      "durationSeconds": 20,
+      "codecs": {
+        "video": "per generator",
+        "audio": "per generator"
+      },
+      "qualities": [
+        {
+          "id": "216p",
+          "width": 384,
+          "height": 216,
+          "bitrate": 250000
+        },
+        {
+          "id": "360p",
+          "width": 640,
+          "height": 360,
+          "bitrate": 600000
+        },
+        {
+          "id": "540p",
+          "width": 960,
+          "height": 540,
+          "bitrate": 1200000
+        }
+      ],
+      "audioTracks": [
+        {
+          "language": "en",
+          "tone": "440 Hz"
+        }
+      ],
+      "subtitles": [],
+      "timeline": "Identical 20 s timeline in every variant (same lavfi source, 2 s GOP, burned-in rendition label + media time), so a failed switch cannot be hidden by a different video.",
+      "expectedCapabilities": {
+        "engine": "native",
+        "manualQuality": true,
+        "adaptiveQuality": false,
+        "requestInterception": false
+      },
+      "purpose": "Native progressive playback, manual quality switching with state preservation, fit, capture, Blob inputs.",
+      "assertions": [
+        "tests/e2e/playback.spec.ts",
+        "tests/e2e/identity.spec.ts",
+        "tests/e2e/errors-blob.spec.ts"
+      ],
+      "access": "none"
+    },
+    {
+      "id": "mp4-portrait",
+      "source": {
+        "kind": "local",
+        "paths": [
+          "mp4/portrait.mp4"
+        ]
+      },
+      "protocol": "mp4",
+      "live": false,
+      "durationSeconds": 10,
+      "qualities": [
+        {
+          "id": "default",
+          "width": 360,
+          "height": 640
+        }
+      ],
+      "audioTracks": [
+        {
+          "language": "und"
+        }
+      ],
+      "expectedCapabilities": {
+        "engine": "native"
+      },
+      "purpose": "Single-video 9:16 Reel layout, fit/objectPosition on the video element.",
+      "assertions": [
+        "tests/e2e/layout-session.spec.ts",
+        "tests/e2e/autoplay-policy.spec.ts"
+      ],
+      "access": "none"
+    },
+    {
+      "id": "hls-vod",
+      "source": {
+        "kind": "local",
+        "paths": [
+          "hls/master.m3u8"
+        ]
+      },
+      "protocol": "hls",
+      "live": false,
+      "durationSeconds": 20,
+      "container": "fMP4 segments (2 s)",
+      "qualities": [
+        {
+          "height": 216,
+          "bandwidth": 330000
+        },
+        {
+          "height": 360,
+          "bandwidth": 700000
+        },
+        {
+          "height": 540,
+          "bandwidth": 1300000
+        }
+      ],
+      "audioTracks": [
+        {
+          "label": "English",
+          "language": "en",
+          "default": true
+        },
+        {
+          "label": "Mongolian",
+          "language": "mn"
+        }
+      ],
+      "subtitles": [
+        {
+          "label": "English",
+          "language": "en",
+          "format": "WebVTT (manifest)"
+        },
+        {
+          "label": "Mongolian",
+          "language": "mn",
+          "format": "WebVTT (manifest)"
+        }
+      ],
+      "expectedCapabilities": {
+        "engine": "shaka",
+        "adaptiveQuality": true,
+        "manualQuality": true,
+        "audioTrackSelection": true,
+        "requestInterception": true
+      },
+      "purpose": "Shaka HLS VOD: Auto/manual quality, multiple audio, internal + external subtitles, credentials scoping, retries.",
+      "assertions": [
+        "tests/e2e/playback.spec.ts",
+        "tests/e2e/security.spec.ts",
+        "tests/e2e/errors-blob.spec.ts"
+      ],
+      "access": "none"
+    },
+    {
+      "id": "dash-vod",
+      "source": {
+        "kind": "local",
+        "paths": [
+          "dash/manifest.mpd"
+        ]
+      },
+      "protocol": "dash",
+      "live": false,
+      "durationSeconds": 20,
+      "qualities": [
+        {
+          "height": 216
+        },
+        {
+          "height": 360
+        },
+        {
+          "height": 540
+        }
+      ],
+      "audioTracks": [
+        {
+          "label": "English",
+          "language": "en"
+        },
+        {
+          "label": "Mongolian",
+          "language": "mn"
+        }
+      ],
+      "subtitles": [
+        {
+          "language": "en",
+          "format": "WebVTT sidecar AdaptationSet (no label: menu shows the language name)"
+        },
+        {
+          "language": "mn",
+          "format": "WebVTT sidecar AdaptationSet"
+        }
+      ],
+      "expectedCapabilities": {
+        "engine": "shaka",
+        "adaptiveQuality": true,
+        "audioTrackSelection": true
+      },
+      "purpose": "Shaka DASH VOD: quality/audio/subtitles, streaming/abr configuration mapping.",
+      "assertions": [
+        "tests/e2e/playback.spec.ts"
+      ],
+      "access": "none"
+    },
+    {
+      "id": "dash-clearkey",
+      "source": {
+        "kind": "local",
+        "paths": [
+          "dash-clearkey/manifest.mpd"
+        ]
+      },
+      "protocol": "dash",
+      "live": false,
+      "durationSeconds": 20,
+      "drm": {
+        "keySystem": "org.w3.clearkey",
+        "scheme": "cenc (audio track, full-sample AES-CTR)",
+        "kid": "9eb4050de44b4802932e27d75083e266",
+        "licenseServer": "scripts/fixture-server.mjs /license/clearkey (optional ?requireAuth=1 expects Bearer test-license-token)"
+      },
+      "expectedCapabilities": {
+        "engine": "shaka",
+        "drm": true,
+        "captureFrame": false
+      },
+      "purpose": "DRM integration contract: license URL, token header, request/response transforms, license retry and error mapping. Public TEST key only — never a production secret.",
+      "assertions": [
+        "tests/e2e/drm.spec.ts"
+      ],
+      "access": "none"
+    },
+    {
+      "id": "subs-webvtt",
+      "source": {
+        "kind": "local",
+        "paths": [
+          "subs/en.vtt",
+          "subs/mn.vtt"
+        ]
+      },
+      "protocol": "webvtt",
+      "purpose": "External English/Mongolian subtitles (cue every 2 s: 'EN cue Ns' / 'MN хадмал Ns'); priority rules, off preservation, styling.",
+      "assertions": [
+        "tests/e2e/playback.spec.ts",
+        "tests/e2e/layout-session.spec.ts"
+      ],
+      "access": "none"
+    },
+    {
+      "id": "subs-hostile",
+      "source": {
+        "kind": "local",
+        "paths": [
+          "subs/hostile.vtt"
+        ]
+      },
+      "protocol": "webvtt",
+      "purpose": "Cue containing <script>/<img onerror> must render as inert text on both engines.",
+      "assertions": [
+        "tests/e2e/security.spec.ts"
+      ],
+      "access": "none"
+    },
+    {
+      "id": "subs-unsupported",
+      "source": {
+        "kind": "local",
+        "paths": [
+          "subs/unsupported.srt"
+        ]
+      },
+      "protocol": "srt",
+      "purpose": "Rejected external format (only WebVTT is accepted) → config error, playback continues.",
+      "assertions": [
+        "tests/unit/options.test.ts"
+      ],
+      "access": "none"
+    },
+    {
+      "id": "live-hls-dvr",
+      "source": {
+        "kind": "generated-live",
+        "command": "node scripts/live-fixtures.mjs hls --window 8"
+      },
+      "protocol": "hls",
+      "live": true,
+      "dvr": {
+        "segmentSeconds": 2,
+        "windowSegments": 8,
+        "windowSeconds": 16,
+        "expires": true
+      },
+      "qualities": [
+        {
+          "height": 216
+        },
+        {
+          "height": 360
+        }
+      ],
+      "audioTracks": [
+        {
+          "language": "en"
+        }
+      ],
+      "expectedCapabilities": {
+        "engine": "shaka",
+        "liveSeek": true
+      },
+      "purpose": "Real-time live HLS with a moving edge and expiring DVR window: seekToLive, DVR restore/expiry after live midrolls, session-time cues.",
+      "assertions": [
+        "tests/e2e/live.spec.ts"
+      ],
+      "access": "none (requires ffmpeg at test time)"
+    },
+    {
+      "id": "live-dash-dvr",
+      "source": {
+        "kind": "generated-live",
+        "command": "node scripts/live-fixtures.mjs dash --window 8"
+      },
+      "protocol": "dash",
+      "live": true,
+      "dvr": {
+        "segmentSeconds": 2,
+        "windowSegments": 8,
+        "windowSeconds": 16,
+        "expires": true
+      },
+      "expectedCapabilities": {
+        "engine": "shaka",
+        "liveSeek": true
+      },
+      "purpose": "Real-time live DASH (dynamic MPD) with DVR window.",
+      "assertions": [
+        "tests/e2e/live.spec.ts"
+      ],
+      "access": "none (requires ffmpeg at test time)"
+    },
+    {
+      "id": "broken",
+      "source": {
+        "kind": "local",
+        "paths": [
+          "broken/not-a-video.mp4",
+          "broken/missing-variant.m3u8",
+          "broken/malformed.mpd",
+          "broken/unknown-extension.bin"
+        ]
+      },
+      "purpose": "Finite error cases: decode/unsupported, 404 variant, malformed manifest, unknown type → normalized errors, retry UI.",
+      "assertions": [
+        "tests/e2e/errors-blob.spec.ts"
+      ],
+      "access": "none"
+    },
+    {
+      "id": "server-behaviours",
+      "source": {
+        "kind": "fixture-server",
+        "routes": [
+          "/flaky/<n>/…",
+          "?flaky=<n>&key=…",
+          "/slow/<ms>/…",
+          "/signed/…",
+          "/redirect?to=…",
+          "/__log"
+        ]
+      },
+      "purpose": "Deterministic network failures, slow responses, re-signed URLs, redirects and a request log (records only whether Authorization was present, never its value).",
+      "assertions": [
+        "tests/e2e/errors-blob.spec.ts",
+        "tests/e2e/security.spec.ts",
+        "tests/e2e/identity.spec.ts"
+      ],
+      "access": "none"
+    },
+    {
+      "id": "ads-direct",
+      "source": {
+        "kind": "local",
+        "paths": [
+          "ads/ad-video.mp4",
+          "ads/banner.png",
+          "images/poster.png"
+        ]
+      },
+      "purpose": "Direct text/image/video ads (6 s SMPTE-bars video ad, banner image) and poster.",
+      "assertions": [
+        "tests/e2e/ads.spec.ts",
+        "tests/e2e/live.spec.ts"
+      ],
+      "access": "none"
+    },
+    {
+      "id": "vast-local",
+      "source": {
+        "kind": "local",
+        "paths": [
+          "vast/inline-linear.xml",
+          "vast/no-fill.xml",
+          "vast/malformed.xml"
+        ]
+      },
+      "purpose": "VAST success / no-fill / malformed responses served with __ORIGIN__ substitution. Used with the deterministic fake IMA SDK (tests/e2e/fake-ima.js) for precedence, timeout and SDK-block cases.",
+      "assertions": [
+        "tests/e2e/vast.spec.ts"
+      ],
+      "access": "none",
+      "note": "The fake SDK verifies the package's IMA bridge contract only; it is not evidence of real IMA ad playback."
+    },
+    {
+      "id": "ima-real",
+      "source": {
+        "kind": "external",
+        "env": [
+          "RSP_FIXTURE_IMA_VAST_URL"
+        ]
+      },
+      "purpose": "Real Google IMA SDK playback of a VAST tag (desktop, mobile, live).",
+      "status": "externally-unverified",
+      "skipBehaviour": "Skipped and reported when the variable is unset or imasdk.googleapis.com / ad media hosts are unreachable. The release gate stays open.",
+      "access": "Public IMA sample tags are acceptable; never commit tags that embed account secrets."
+    },
+    {
+      "id": "drm-widevine",
+      "source": {
+        "kind": "external",
+        "env": [
+          "RSP_FIXTURE_WIDEVINE_DASH_URL",
+          "RSP_FIXTURE_WIDEVINE_LICENSE_URL",
+          "RSP_FIXTURE_LICENSE_TOKEN"
+        ]
+      },
+      "protocol": "dash",
+      "drm": {
+        "keySystem": "com.widevine.alpha"
+      },
+      "status": "externally-unverified",
+      "skipBehaviour": "Skipped and reported when unset. Requires a browser build with Widevine CDM (not the open-source Chromium used in CI).",
+      "access": "Authorized DRM test provider account (owner: deploying team).",
+      "purpose": "Real Widevine playback through Shaka (license token, robustness, error mapping) — required before Widevine is advertised as production-supported."
+    },
+    {
+      "id": "drm-playready",
+      "source": {
+        "kind": "external",
+        "env": [
+          "RSP_FIXTURE_PLAYREADY_DASH_URL",
+          "RSP_FIXTURE_PLAYREADY_LICENSE_URL",
+          "RSP_FIXTURE_LICENSE_TOKEN"
+        ]
+      },
+      "protocol": "dash",
+      "drm": {
+        "keySystem": "com.microsoft.playready"
+      },
+      "status": "externally-unverified",
+      "skipBehaviour": "Skipped and reported when unset. Requires Microsoft Edge on Windows.",
+      "access": "Authorized DRM test provider account.",
+      "purpose": "Real PlayReady playback through Shaka on Edge/Windows."
+    },
+    {
+      "id": "drm-fairplay",
+      "source": {
+        "kind": "external",
+        "env": [
+          "RSP_FIXTURE_FAIRPLAY_HLS_URL",
+          "RSP_FIXTURE_FAIRPLAY_LICENSE_URL",
+          "RSP_FIXTURE_FAIRPLAY_CERTIFICATE_URL",
+          "RSP_FIXTURE_LICENSE_TOKEN"
+        ]
+      },
+      "protocol": "hls",
+      "drm": {
+        "keySystem": "com.apple.fps"
+      },
+      "status": "externally-unverified",
+      "skipBehaviour": "Skipped and reported when unset. Requires Safari (macOS/iOS) on real hardware.",
+      "access": "Authorized FairPlay deployment package and test provider.",
+      "purpose": "Real FairPlay playback (certificate, initDataTransform/content ID, native HLS) on Safari."
+    },
+    {
+      "id": "cast-receiver",
+      "source": {
+        "kind": "external",
+        "env": [
+          "RSP_FIXTURE_CAST_RECEIVER_APP_ID"
+        ]
+      },
+      "status": "externally-unverified",
+      "skipBehaviour": "Requires a physical Cast device on the same network and a registered receiver app ID.",
+      "access": "Google Cast developer console registration (owner: deploying team).",
+      "purpose": "Cast sender ↔ custom receiver session, position hand-off and local resume (examples/cast-receiver)."
+    },
+    {
+      "id": "ll-streams",
+      "source": {
+        "kind": "external",
+        "env": [
+          "RSP_FIXTURE_LL_HLS_URL",
+          "RSP_FIXTURE_LL_DASH_URL"
+        ]
+      },
+      "status": "externally-unverified",
+      "skipBehaviour": "A static file server cannot serve LL-HLS blocking reloads/partial segments or LL-DASH chunked transfer; requires an LL-capable origin.",
+      "access": "Authorized LL origin.",
+      "purpose": "True LL-HLS (partial segments, blocking reload) and LL-DASH (chunked CMAF) latency behaviour."
+    }
+  ]
+}
